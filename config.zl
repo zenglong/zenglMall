@@ -1,0 +1,9 @@
+config['db_host'] = 'localhost';
+config['db_port'] = 3306;
+config['db_user'] = 'root';
+config['db_passwd'] = '123456';
+config['db_name'] = 'testmall';
+config['version'] = '0.1.0';
+config['site_name'] = 'zenglMall'; // 站点名称
+config['site_desc'] = 'mall made by zengl language'; // 站点描述
+config['list_page_count'] = 10; // 前台列表页每页显示的文章数

@@ -1,0 +1,44 @@
+use builtin, request, mysql, session;
+def TRUE 1;
+def FALSE 0;
+inc '../config.zl';
+inc '../mysql.zl';
+
+cookies = rqtGetCookie();
+sess_data = sessGetData(bltStr(&cookies['ADM_SESSION']));
+if(bltCount(sess_data) > 0 && sess_data['uid'] > 0)
+	rqtSetResponseHeader("HTTP/1.1 302 Moved Temporarily");
+	rqtSetResponseHeader("Location: admin.zl");
+	bltExit();
+endif
+
+posts = rqtGetBodyAsArray();
+if(!posts['submit'])
+	data['title'] = 'zenglMall';
+	print bltMustacheFileRender("tpl/login.tpl",data);
+else
+	bltStr(&posts['username'], TRUE);
+	bltStr(&posts['password'], TRUE);
+	Mysql db;
+	db = bltArray();
+	Mysql.init(db, config, "tpl/error.tpl");
+	result = Mysql.fetchOne(db, "select * from users where username='" + 
+					mysqlRealEscapeString(db.con, posts['username']) + "'");
+	data['msg'] = 'failed';
+	data['errmsg'] = '用户名或密码错误！';
+	if(bltCount(result) > 0)
+		if(bltMd5(posts['password']) == result['password'])
+			data['msg'] = 'success';
+			bltUnset(&data['errmsg']);
+			sess_data['username'] = result['username'];
+			sess_data['nickname'] = result['nickname'];
+			sess_data['uid'] = result['id'];
+			sess_id = sessMakeId();
+			sessSetData(sess_id, sess_data);
+			rqtSetResponseHeader("Set-Cookie: ADM_SESSION="+sess_id+"; path=/");
+		endif
+	endif
+	rqtSetResponseHeader("Content-Type: application/json");
+	print bltJsonEncode(data);
+endif
+

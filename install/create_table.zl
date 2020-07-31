@@ -1,0 +1,108 @@
+use builtin, mysql;
+inc '../config.zl';
+
+install_lock_file = 'install.lock';
+
+if(bltFileExists(install_lock_file))
+	print 'lock file exists';
+	bltExit();
+endif
+
+fun finish_with_error(con)
+	data['error'] = mysqlError(con);
+	mysqlClose(con);
+	print bltMustacheFileRender("error.tpl",data);
+	bltExit(data['error']);
+endfun
+
+con = mysqlInit();
+if(!mysqlRealConnect(con, config['db_host'], config['db_user'], 
+			config['db_passwd'], config['db_name'], config['db_port']))
+	finish_with_error(con);
+endif
+
+// 设置mysql字符集为utf8
+if(mysqlSetCharacterSet(con, "utf8"))
+	finish_with_error(con);
+endif
+
+// 创建后台管理用户表
+if(mysqlQuery(con, "CREATE TABLE users(
+					  id int NOT NULL AUTO_INCREMENT, 
+					  username varchar(255) NOT NULL DEFAULT '' COMMENT '用户名', 
+					  password varchar(32) NOT NULL DEFAULT '' COMMENT '密码', 
+					  nickname varchar(40) NOT NULL DEFAULT '' COMMENT '用户昵称',
+					  PRIMARY KEY (id)
+					) ENGINE=MyISAM DEFAULT CHARSET utf8 COLLATE utf8_general_ci COMMENT='用户表'"))
+	finish_with_error(con);
+endif
+
+// 创建分类表
+if(mysqlQuery(con, "CREATE TABLE category(
+					  id int NOT NULL AUTO_INCREMENT, 
+					  name varchar(100) NOT NULL DEFAULT '' COMMENT '分类名', 
+					  description varchar(255) NOT NULL DEFAULT '' COMMENT '分类描述',
+					  pid int NOT NULL DEFAULT '0' COMMENT '上级分类ID', 
+					  childcnt int NOT NULL DEFAULT '0' COMMENT '子分类数量',
+					  type tinyint NOT NULL DEFAULT '0' COMMENT '类型:0表示普通商品分类,1表示外部链接',
+					  PRIMARY KEY (id)
+					) ENGINE=MyISAM DEFAULT CHARSET utf8 COLLATE utf8_general_ci COMMENT='分类表'"))
+	finish_with_error(con);
+endif
+
+// 创建商品表
+if(mysqlQuery(con, "CREATE TABLE goods(
+	id int NOT NULL AUTO_INCREMENT, 
+	name varchar(255) NOT NULL DEFAULT '' COMMENT '商品名称', 
+	description varchar(1024) NOT NULL DEFAULT '' COMMENT '商品描述',
+	keywords varchar(255) NOT NULL DEFAULT '' COMMENT '商品关键词',
+	thumbnail varchar(255) NOT NULL DEFAULT '' COMMENT '商品缩略图', 
+	uid int NOT NULL DEFAULT '0' COMMENT '发布商品的用户ID', 
+	cid int NOT NULL DEFAULT '0' COMMENT '商品所属的分类ID', 
+	content mediumtext NOT NULL COMMENT '商品内容',
+	`created_at` timestamp NULL DEFAULT NULL COMMENT '创建时间',
+ 	`updated_at` timestamp NULL DEFAULT NULL COMMENT '更新时间',
+	PRIMARY KEY (id)
+	) ENGINE=MyISAM DEFAULT CHARSET utf8 COLLATE utf8_general_ci COMMENT='商品表'"))
+	finish_with_error(con);
+endif
+
+// 创建友情链接表
+if(mysqlQuery(con, "CREATE TABLE friendly_link(
+	id int NOT NULL AUTO_INCREMENT, 
+	name varchar(255) NOT NULL DEFAULT '' COMMENT '网站名称',
+	url varchar(1024) NOT NULL DEFAULT '' COMMENT '网站url',
+	description varchar(1024) NOT NULL DEFAULT '' COMMENT '网站描述',
+	logo varchar(1024) NOT NULL DEFAULT '' COMMENT '网站LOGO',
+	`created_at` timestamp NULL DEFAULT NULL COMMENT '创建时间',
+	`updated_at` timestamp NULL DEFAULT NULL COMMENT '更新时间',
+	PRIMARY KEY (id)
+	) ENGINE=MyISAM DEFAULT CHARSET utf8 COLLATE utf8_general_ci COMMENT='友情链接表'"))
+	finish_with_error(con);
+endif
+
+data['username'] = 'admin';
+data['nickname'] = '管理员';
+data['password'] = 'admin@123456';
+
+if(mysqlQuery(con, "INSERT INTO users (`username`,`password`,`nickname`) VALUES('" +
+					mysqlRealEscapeString(con,data['username']) + "', '" +
+					mysqlRealEscapeString(con,bltMd5(data['password'])) + "', '" + 
+					mysqlRealEscapeString(con,data['nickname']) + "')")
+	)
+	finish_with_error(con);
+endif
+
+data['mysql_client_info'] = mysqlGetClientInfo();
+server_version = mysqlGetServerVersion(con);
+data['mysql_server_version'] = server_version[0] + '.' + server_version[1] + '.' + server_version[2];
+data['mysql_charset'] = mysqlCharacterSetName(con);
+data['zengl_mall_version'] = config['version'];
+
+bltWriteFile(install_lock_file, bltDate("%Y%m%d %H:%M:%S"));
+data['install_lock_file'] = install_lock_file;
+
+print bltMustacheFileRender("create_table.tpl",data);
+
+mysqlClose(con);
+

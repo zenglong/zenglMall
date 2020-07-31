@@ -1,0 +1,103 @@
+class Mysql
+	con;
+	error_tpl;
+	fun error(obj, sql='')
+		Mysql obj;
+		data['error'] = mysqlError(obj.con);
+		mysqlClose(obj.con);
+		if(obj.error_tpl)
+			data['title'] = 'Mysql错误';
+			print bltMustacheFileRender(obj.error_tpl,data);
+		endif
+		bltExit(data['error'] + (sql ? ' sql: ' + sql : ''));
+	endfun
+
+	fun init(obj, config, error_tpl)
+		Mysql obj;
+		obj.error_tpl = error_tpl;
+		obj.con = mysqlInit();
+		if(!mysqlRealConnect(obj.con, config['db_host'], config['db_user'], 
+					config['db_passwd'], config['db_name'], config['db_port']))
+			Mysql.error(obj);
+		endif
+		if(mysqlSetCharacterSet(obj.con, "utf8"))
+			Mysql.error(obj);
+		endif
+	endfun
+
+	fun fetchOne(obj, sql)
+		Mysql obj;
+		if(mysqlQuery(obj.con, sql))
+			Mysql.error(obj);
+		endif
+		result = mysqlStoreResult(obj.con);
+		if(!mysqlFetchResultRow(result, &result_array))
+			result_array = bltArray();
+		endif
+		mysqlFreeResult(result);
+		return result_array;
+	endfun
+
+	fun fetchAll(obj, sql)
+		Mysql obj;
+		if(mysqlQuery(obj.con, sql))
+			Mysql.error(obj, sql);
+		endif
+		result = mysqlStoreResult(obj.con);
+		return_array = bltArray();
+		while(mysqlFetchResultRow(result, &result_array))
+			return_array[] = result_array;
+		endwhile
+		mysqlFreeResult(result);
+		return return_array;
+	endfun
+
+	fun Escape(obj, str)
+		Mysql obj;
+		return mysqlRealEscapeString(obj.con, bltStr(str));
+	endfun
+
+	fun Insert(obj, table, datas)
+		Mysql obj;
+		vals = keys = '';
+		len = bltCount(datas);
+		for(i=0,j=0;bltIterArray(datas,&i,&k,&v);)
+			keys += "`" + Mysql.Escape(obj, k) + "`";
+			vals += "'" + Mysql.Escape(obj, v) + "'";
+			if(++j < len)
+				keys += ',';
+				vals += ',';
+			endif
+		endfor
+		if(len > 0)
+			sql = "INSERT INTO `"+table+"` (" + keys + ") VALUES (" + vals + ")";
+			if(mysqlQuery(obj.con, sql))
+				Mysql.error(obj, sql);
+			endif
+		endif
+	endfun
+
+	fun Update(obj, table, datas, where = '')
+		Mysql obj;
+		key_vals = '';
+		len = bltCount(datas);
+		for(i=0,j=0;bltIterArray(datas,&i,&k,&v);)
+			key_vals += "`" + Mysql.Escape(obj, k) + "`=" + "'" + Mysql.Escape(obj, v) + "'";
+			if(++j < len) key_vals += ','; endif
+		endfor
+		if(len > 0)
+			sql = "UPDATE `"+table+"` SET " + key_vals + (where != '' ? ' WHERE ' + where : '');
+			if(mysqlQuery(obj.con, sql))
+				Mysql.error(obj, sql);
+			endif
+		endif
+	endfun
+
+	fun Exec(obj, sql)
+		Mysql obj;
+		if(mysqlQuery(obj.con, sql))
+			Mysql.error(obj);
+		endif
+	endfun
+endclass
+
