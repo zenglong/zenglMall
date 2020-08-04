@@ -26,9 +26,9 @@
 		<div class="form-signin">
 			<h2 class="form-signin-heading" style="text-align: center;"><% title %></h2>
 			<label for="username" class="sr-only">用户名</label>
-			<input type="text" id="username" class="form-control" placeholder="用户名" required autofocus>
+			<input type="text" id="username" class="form-control" placeholder="用户名" required autofocus @keyup.enter="$('#submit').click()">
 			<label for="password" class="sr-only">密码</label>
-			<input type="password" id="password" class="form-control" placeholder="密码" required>
+			<input type="password" id="password" class="form-control" placeholder="密码" required @keyup.enter="$('#submit').click()">
 			<button id="submit" class="btn btn-lg btn-primary btn-block" type="button" data-loading-text="登录中...">登 录</button>
 		</div>
 	</div> <!-- /container -->

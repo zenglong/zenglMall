@@ -1,0 +1,21 @@
+inc 'common.zl';
+
+csses[] = 'admin.css';
+data['csses'] = csses;
+data['title'] = '后台管理';
+data['username'] = sess_data['username'];
+data['nickname'] = sess_data['nickname'];
+
+data['mysql_client_info'] = mysqlGetClientInfo();
+
+Mysql db;
+db = bltArray();
+Mysql.init(db, config, "tpl/error.tpl");
+data['mysql_server_version'] = mysqlGetServerVersion(db.con);
+data['zenglServerVersion'] = bltGetZenglServerVersion();
+data['zenglVersion'] = bltGetZenglVersion();
+data['mallVersion'] = config['version'];
+data['cur_menu'] = 'admin.zl';
+data['datas'] = bltJsonEncode(data);
+print bltMustacheFileRender("tpl/admin.tpl", data);
+

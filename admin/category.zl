@@ -1,0 +1,60 @@
+inc 'common.zl';
+
+querys = rqtGetQuery();
+action = querys['act'] ? querys['act'] : 'list';
+if(action == 'list')
+	Category.list();
+else
+	print 'invalid act';
+endif
+
+class Category
+	// 根据pid获取分类列表
+	fun getListByPid(db, pid, field="")
+		field = field ? field : "id,name,description,pid,childcnt,type";
+		where = pid >= 0 ? ' where pid='+pid : '';
+		return Mysql.fetchAll(db, "select "+field+" from category "+where + " order by id asc");
+	endfun
+
+	// 根据分类id获取分类信息
+	fun getCateInfo(db, id, field="")
+		field = field ? field : "*";
+		return Mysql.fetchOne(db, "select "+field+" from category where id="+id);
+	endfun
+
+	// 初始化数据库连接
+	fun initDB()
+		global config;
+		db = bltArray();
+		Mysql.init(db, config, "tpl/error.tpl");
+		return db;
+	endfun
+
+	// 显示分类列表
+	fun list()
+		global menus, querys;
+		pid = querys['pid'] ? bltInt(querys['pid']) : 0;
+		db = Category.initDB();
+		data['title'] = '分类列表:';
+		data['categories'] = Category.getListByPid(db, pid);
+		if(pid > 0)
+			data['category'] = Category.getCateInfo(db, pid);
+			// 如果父分类中的childcnt字段的值，和实际读取出来的子分类的数量不一致的话，则更新父分类的childcnt值
+			if(data['category', 'childcnt'] != bltCount(data['categories']))
+				Category.updateChildCnt(db, pid);
+			endif
+		endif
+		data['cur_menu'] = 'category.zl';
+		data['pid'] = pid;
+		data['datas'] = bltJsonEncode(data);
+		print bltMustacheFileRender("tpl/category_list.tpl", data);
+	endfun
+
+	// 更新某个分类的子分类数量
+	fun updateChildCnt(db, pid)
+		if(pid > 0)
+			ret = Mysql.fetchOne(db, "select count(1) as childcnt from category where pid="+pid);
+			Mysql.Exec(db, "UPDATE category SET childcnt = '"+ret['childcnt']+"' where id="+pid);
+		endif
+	endfun
+endclass
