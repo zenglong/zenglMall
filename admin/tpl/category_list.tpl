@@ -33,7 +33,7 @@
 						<a :href="'?pid='+category.id" :title="'查看子分类('+category.childcnt+')'" class="glyphicon glyphicon-list-alt" aria-hidden="true"></a>&nbsp;&nbsp;
 					</template>
 					<a :href="'?act=edit&amp;id='+category.id" title="编辑" class="glyphicon glyphicon-edit" aria-hidden="true"></a>&nbsp;&nbsp;
-					<a href="javascript:void(0)" :data-id="category.id" title="删除" class="glyphicon glyphicon-trash del_category" aria-hidden="true"></a><span></span>
+					<a href="javascript:void(0)" :data-id="category.id" title="删除" @click="delete_category" class="glyphicon glyphicon-trash del_category" aria-hidden="true"></a><span></span>
 				</td>
 			</tr>
 			</template>
@@ -54,6 +54,41 @@
 		el: "#table_categories",
 		data: {
 			categories: datas.categories
+		},
+		methods: {
+			delete_category: function(event) {
+				var id = $(event.target).data('id');
+				var next_span = $(event.target).next('span');
+				var r = confirm("删除确认");
+				if(r == true) {
+					$.ajax({
+						type: 'GET',
+						url: "category_ajax.zl?timestamp="+(new Date().getTime()),
+						dataType: "json",
+						data: {
+							"act": "delete",
+							"id": id
+						},
+						beforeSend:function(){
+							next_span.text(' 删除中...');
+						},
+						success: function(data){
+							if(data.msg != 'success') {					
+								alert('删除失败: ' + data.errmsg);
+								next_span.text('');
+								return;
+							}
+							alert('删除成功');
+							window.location.reload();
+						},
+						//调用出错执行的函数
+						error: function(err){
+							alert('未知异常');
+							next_span.text('');
+						}
+					});
+				}
+			}
 		}
 	});
 </script>

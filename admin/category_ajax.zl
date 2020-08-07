@@ -1,0 +1,54 @@
+inc 'common.zl';
+inc 'category_base.zl';
+
+querys = rqtGetQuery();
+action = querys['act'] ? querys['act'] : 'list';
+if(action == 'list')
+	CategoryAjax.list();
+elif(action == 'delete')
+	CategoryAjax.delete();
+else
+	CategoryAjax.returnMessage('invalid act');
+endif
+
+class CategoryAjax
+	// ajax返回成功或失败
+	fun returnMessage(errmsg = '')
+		ret['msg'] = errmsg ? 'failed' : 'success';
+		ret['errmsg'] = errmsg;
+		rqtSetResponseHeader("Content-Type: application/json");
+		print bltJsonEncode(ret);
+		bltExit();
+	endfun
+
+	// 异步加载分类列表
+	fun list()
+		global querys;
+		db = CategoryBase.initDB();
+		pid = querys['pid'] ? bltInt(querys['pid']) : 0;
+		categories = CategoryBase.getListByPid(db, pid, "id,name,childcnt");
+		for(i=0;bltIterArray(categories,&i,&v);)
+			bltHtmlEscape(&v['name'], TRUE);
+			bltHtmlEscape(&v['description'], TRUE);
+		endfor
+		rqtSetResponseHeader("Content-Type: application/json");
+		print bltJsonEncode(categories);
+	endfun
+
+	// 异步ajax删除某个分类
+	fun delete()
+		global querys;
+		db = CategoryBase.initDB();
+		id = querys['id'] ? bltInt(querys['id']) : 0;
+		if(id <= 0) 
+			CategoryAjax.returnMessage('无效的分类id'); 
+		endif
+		cateinfo = CategoryBase.getCateInfo(db, id);
+		if(cateinfo['childcnt'] > 0) 
+			CategoryAjax.returnMessage('该分类包含子分类，需要先删除子分类');
+		endif
+		Mysql.Exec(db, "DELETE FROM category WHERE id="+id);
+		CategoryBase.updateChildCnt(db, cateinfo['pid']);
+		CategoryAjax.returnMessage();
+	endfun
+endclass
