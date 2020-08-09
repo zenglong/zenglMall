@@ -1,0 +1,49 @@
+inc 'common.zl';
+inc 'helper.zl';
+
+querys = rqtGetQuery();
+action = querys['act'] ? querys['act'] : 'list';
+if(action == 'list')
+	Goods.list();
+else
+	print 'invalid act';
+endif
+
+class Goods
+	// 获取分类列表，或者某个分类的信息
+	fun getCategory(db, data, posts = 0)
+		if(posts && posts['cid'] > 0)
+			data['category'] = Mysql.fetchOne(db, "select id,name from category where id='"+posts['cid']+"'");
+		else
+			data['categories'] = Mysql.fetchAll(db, "select id,name,childcnt from category where pid=0 order by id asc");
+		endif
+	endfun
+
+	// 显示商品列表
+	fun list()
+		global querys;
+		data['title'] = '商品列表:';
+		data['csses', 0] = 'goods_list.css';
+		data['head_js', 0] = 'category.js';
+		data['cur_menu'] = 'goods.zl';
+		db = init_db();
+		Goods.getCategory(db, data, querys);
+		where = " where 1 ";
+		if(bltCount(data['category']))
+			where += " and cid=" + data['category', 'id'];
+		endif
+		stitle = bltStr(&querys['stitle']);
+		if(stitle)
+			where += ' and g.name like "%' + Mysql.Escape(db, stitle) + '%"';
+			data['stitle'] = stitle;
+		endif
+		tmp = Mysql.fetchOne(db, "select count(1) as cnt from goods as g " + where);
+		total = bltInt(tmp['cnt']);
+		page = get_page(10, total, 10);
+		data['page'] = page;
+		data['items'] = Mysql.fetchAll(db, "select g.id,g.name,thumbnail,uid,price,market_price,created_at,updated_at,c.name as cname from goods as g left join category as c on c.id=g.cid "+ where +
+							" order by id desc limit " + page['offset'] + "," + page['limit']);
+		data['datas'] = bltJsonEncode(data);
+		print bltMustacheFileRender("tpl/goods_list.tpl", data);
+	endfun
+endclass

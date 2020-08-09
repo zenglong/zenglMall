@@ -11,3 +11,11 @@ if(bltCount(sess_data) == 0 || !sess_data['uid'])
 	rqtSetResponseHeader("Location: login.zl");
 	bltExit();
 endif
+
+// 初始化数据库连接
+fun init_db()
+	global config;
+	db = bltArray();
+	Mysql.init(db, config, "tpl/error.tpl");
+	return db;
+endfun
