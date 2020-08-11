@@ -8,12 +8,12 @@ if(action == 'list')
 elif(action == 'delete')
 	CategoryAjax.delete();
 else
-	CategoryAjax.returnMessage('invalid act');
+	CategoryAjax.Return('invalid act');
 endif
 
 class CategoryAjax
 	// ajax返回成功或失败
-	fun returnMessage(errmsg = '')
+	fun Return(errmsg = '') // Return首字母大写，防止与关键词return冲突
 		ret['msg'] = errmsg ? 'failed' : 'success';
 		ret['errmsg'] = errmsg;
 		rqtSetResponseHeader("Content-Type: application/json");
@@ -41,14 +41,14 @@ class CategoryAjax
 		db = CategoryBase.initDB();
 		id = querys['id'] ? bltInt(querys['id']) : 0;
 		if(id <= 0) 
-			CategoryAjax.returnMessage('无效的分类id'); 
+			CategoryAjax.Return('无效的分类id'); 
 		endif
 		cateinfo = CategoryBase.getCateInfo(db, id);
 		if(cateinfo['childcnt'] > 0) 
-			CategoryAjax.returnMessage('该分类包含子分类，需要先删除子分类');
+			CategoryAjax.Return('该分类包含子分类，需要先删除子分类');
 		endif
 		Mysql.Exec(db, "DELETE FROM category WHERE id="+id);
 		CategoryBase.updateChildCnt(db, cateinfo['pid']);
-		CategoryAjax.returnMessage();
+		CategoryAjax.Return();
 	endfun
 endclass

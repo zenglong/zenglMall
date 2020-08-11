@@ -14,11 +14,11 @@
 			<label v-if="datas.category" id="p-cate-label">所属分类:<span id="p-cate-name">{{ p_cate_name }}(cid={{ p_cate_id }})</span></label>
 			<input type="hidden" name="cid" :value="p_cate_id" id="pid">
 			<a v-if="datas.category" href="javascript:void(0)" id="reset_category" class="btn btn-default" @click="get_category_list(0, true)"  data-loading-text="加载分类列表...">
-				重置上级分类
+				重置所属分类
 			</a>
 			<template v-else-if="categories.length > 0">
 			<select v-for="(data_categories, index) in categories" class="form-control sel_pid" @change="sel_pid_change($event, index)">
-				<option value="0" data-childcnt="0">选择上级分类</option>
+				<option value="0" data-childcnt="0">选择所属分类</option>
 				<option v-for="category in data_categories" :value="category.id" :data-childcnt="category.childcnt">{{ category.name }}</option>
 			</select>
 			</template>
