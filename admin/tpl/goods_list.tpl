@@ -46,7 +46,7 @@
 			<template v-if="datas.items.length > 0">
 			<tr v-for="item in datas.items">
 				<td>{{item.id}}</td>
-				<td><img v-if="item.thumbnail" :src="item.thumbnail" width="100" height="130" /></td>
+				<td><img v-if="item.thumbnail" :src="item.thumbnail" width="130" height="130" /></td>
 				<td>{{item.name}}</td>
 				<td>{{item.price}}</td>
 				<td>{{item.market_price}}</td>
@@ -57,7 +57,7 @@
 				<td>
 					<a :href="'/goods.zl?id='+item.id" title="查看" class="glyphicon glyphicon-eye-open" aria-hidden="true" target="_blank"></a>&nbsp;&nbsp;
 					<a :href="'?act=edit&amp;id='+item.id" title="编辑" class="glyphicon glyphicon-edit" aria-hidden="true"></a>&nbsp;&nbsp;
-					<a href="javascript:void(0)" :data-id="item.id" title="删除" class="glyphicon glyphicon-trash del_category" aria-hidden="true"></a><span></span>
+					<a href="javascript:void(0)" :data-id="item.id" title="删除" @click="delete_goods" class="glyphicon glyphicon-trash del_category" aria-hidden="true"></a><span></span>
 				</td>
 			</tr>
 			</template>
@@ -91,6 +91,7 @@
 			</li>
 		</ul>
 	</nav>
+	<span>总共{{datas.page.total}}篇文章/共{{datas.page.totalpage}}页</span>
 </div>
 <script type="text/javascript">
 	var table_goods = new Vue({
@@ -108,6 +109,39 @@
 			},
 			get_category_list: function(index, is_reset) {
 				category_get_list(this, index, is_reset);
+			},
+			delete_goods: function(event) {
+				var id = $(event.target).data('id');
+				var next_span = $(this).next('span');
+				var r = confirm("删除文章确认[id: "+id+"]");
+				if(r == true) {
+					$.ajax({
+						type: 'GET',
+						url: "goods_ajax.zl?timestamp="+(new Date().getTime()),
+						dataType: "json",
+						data: {
+							"act": "delete",
+							"id": id
+						},
+						beforeSend:function(){
+							next_span.text(' 删除中...');
+						},
+						success: function(data){
+							if(data.msg != 'success') {					
+								alert('删除失败: ' + data.errmsg);
+								next_span.text('');
+								return;
+							}
+							alert('删除成功');
+							window.location.reload();
+						},
+						//调用出错执行的函数
+						error: function(err){
+							alert('未知异常');
+							next_span.text('');
+						}
+					});
+				}
 			}
 		}
 	});

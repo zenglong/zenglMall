@@ -100,8 +100,8 @@ class Upload
 			bltWriteFile(tmp, v['content_ptr'], v['length']);
 			rqtSetResponseHeader("Content-Type: application/json");
 			wand = magickNewWand();
-			width = querys['width'] ? bltInt(querys['width']) : 100;
-			height = querys['height'] ? bltInt(querys['height']) : 130;
+			width = querys['width'] ? bltInt(querys['width']) : 330;
+			height = querys['height'] ? bltInt(querys['height']) : 330;
 			if(!magickReadImage(wand, tmp))
 				data['error'] = '上传失败，或者上传的不是有效的图片文件';
 			elif(!magickResizeImage(wand, width, height, "LanczosFilter"))

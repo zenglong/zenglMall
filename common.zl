@@ -1,0 +1,23 @@
+use builtin, request, mysql, session;
+def TRUE 1;
+def FALSE 0;
+inc 'config.zl';
+inc 'mysql.zl';
+
+db = init_db();
+categories = Mysql.fetchAll(db, "select id,name,description from category where pid=0 order by id asc");
+
+fun header_data(data)
+	global categories, config;
+	data['head_title'] = data['site_name'] = config['site_name'];
+	data['description'] = config['site_desc'];
+	data['categories'] = categories;
+endfun
+
+// 初始化数据库连接
+fun init_db()
+	global config;
+	db = bltArray();
+	Mysql.init(db, config, "tpl/error.tpl");
+	return db;
+endfun

@@ -19,3 +19,15 @@ fun init_db()
 	Mysql.init(db, config, "tpl/error.tpl");
 	return db;
 endfun
+
+// ajax返回成功或失败
+fun ajax_return(errmsg = '')
+	ret['msg'] = errmsg ? 'failed' : 'success';
+	ret['errmsg'] = errmsg;
+	if(errmsg != '')
+		ret['error'] = errmsg;
+	endif
+	rqtSetResponseHeader("Content-Type: application/json");
+	print bltJsonEncode(ret);
+	bltExit();
+endfun

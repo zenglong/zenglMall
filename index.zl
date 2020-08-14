@@ -1,0 +1,16 @@
+inc 'common.zl';
+
+Index.index();
+
+class Index
+	// 首页内容
+	fun index()
+		global db;
+		header_data(&data);
+		data['csses'] = bltArray('index.css?v=20200814');
+		data['thumb_goods'] = Mysql.fetchAll(db, "select id,name,thumbnail,created_at,DATE_FORMAT(created_at, '%Y%m') as format_created from goods " + 
+							" where thumbnail != '' order by id desc limit 0,5");
+		data['datas'] = bltJsonEncode(data);
+		print bltMustacheFileRender("/tpl/index.tpl", data);
+	endfun
+endclass
