@@ -10,7 +10,7 @@
 	width: 200px;
 }
 .thumbnail .caption {
-	height: 50px;
+	height: 80px;
 	overflow-y: hidden;
 }
 .row .article-link a {
@@ -35,11 +35,30 @@
 .clearfloat{
 	clear:both;
 }
-.btn-try {
+.btn-try, .btn-try:active, .btn-try:visited:active {
 	display: block;
 	width: 100%;
 	border-radius: 0;
 	margin-bottom: 15px;
 	padding: 0px 10px;
 	text-align: left;
+	background-color: #b22a1c !important;
+	border-color: #9b3333 !important;
+}
+.btn-try:hover {
+	background-color: #c82d2d !important;
+	border-color: #c82d2d !important;
+}
+.goods-item-price {
+	color: red;
+	text-align: center;
+}
+.goods-item-name {
+	text-align: center;
+	word-break: break-all;
+	text-overflow: ellipsis;
+	overflow: hidden;
+	display: -webkit-box;
+	-webkit-line-clamp: 2;
+	-webkit-box-orient: vertical;
 }

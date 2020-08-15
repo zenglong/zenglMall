@@ -6,14 +6,14 @@
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<title><% head_title %></title><%# keywords %>
-	<meta name="keywords" content="{{keywords}}" /><%/ keywords %>
-	<%# description %><meta name="description" content="{{description}}" /><%/ description %>
+	<meta name="keywords" content="<% keywords %>" /><%/ keywords %>
+	<%# description %><meta name="description" content="<% description %>" /><%/ description %>
 	<!-- Bootstrap core CSS -->
 	<link href="/assets/css/bootstrap.min.css" rel="stylesheet">
 	<!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
 	<link href="/assets/css/ie10-viewport-bug-workaround.css" rel="stylesheet">
 	<!-- Custom styles for this template -->
-	<link href="/assets/css/common.css" rel="stylesheet">
+	<link href="/assets/css/common.css?v=20200815" rel="stylesheet">
 	<%# csses %>
 	<link href="/assets/css/<% . %>" rel="stylesheet">
 	<%/ csses %>
@@ -42,7 +42,7 @@
 		<div id="navbar" class="collapse navbar-collapse">
 			<ul class="nav navbar-nav">
 				<li v-for="category in categories" :class="{active:category.cur_cid}">
-					<a :href="'/goods.zl?act=list&amp;cid='+category.id">{{category.name}}</a>
+					<a :href="'/goods_list.zl?cid='+category.id">{{category.name}}</a>
 				</li>
 			</ul>
 		</div><!-- /.nav-collapse -->

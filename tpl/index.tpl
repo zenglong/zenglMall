@@ -16,13 +16,30 @@
 			</div>
 		</div>
 	</div>
+	<div class="row" v-for="item in items">
+		<a class="btn btn-primary btn-lg btn-try" :title="item.cate_name" :href="'/goods_list.zl?cid='+item.cate_id">{{ item.cate_name }}</a>
+		<div class="col-xs-18 col-sm-12">
+			<div v-for="goods_item in item.goods_list" class="index-thumbnail">
+				<div class="thumbnail">
+					<a :href="'/goods.zl?id='+goods_item.id" :title="goods_item.name">
+						<img :src="goods_item.thumbnail" :alt="goods_item.name" width="300" height="300"/>
+						<div class="caption">
+							<p class="goods-item-price">{{ goods_item.price }}</p>
+							<p class="goods-item-name">{{ goods_item.name }}</p>
+						</div>
+					</a>
+				</div>
+			</div>
+		</div>
+	</div>
 </div>
 
 <script type="text/javascript">
 	var main_content = new Vue({
 		el: "#main-content",
 		data: {
-			thumb_goods: datas.thumb_goods
+			thumb_goods: datas.thumb_goods,
+			items: datas.items
 		}
 	});
 </script>

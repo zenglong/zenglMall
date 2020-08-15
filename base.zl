@@ -1,0 +1,7 @@
+class Base
+	fun goodsListByCid(cid, offset = 0, num = 10)
+		global db;
+		return Mysql.fetchAll(db, "select g.id,g.name,price,thumbnail from goods as g inner join category as c on c.id = g.cid where g.cid = " + 
+						cid + " or c.pid = " + cid +" order by g.id desc limit " + offset + "," + num);
+	endfun
+endclass
