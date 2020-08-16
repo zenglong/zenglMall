@@ -1,0 +1,26 @@
+inc 'common.zl';
+inc 'base.zl';
+
+querys = rqtGetQuery();
+Goods.index();
+
+class Goods
+	fun index()
+		global querys, db;
+		header_data(&data);
+		data['csses'] = bltArray('goods.css?v=20200816');
+		id = bltInt(querys['id']);
+		goods_info = Mysql.fetchOne(db, "select id,name,thumbnail,price,market_price,keywords,description,content,cid from goods where id=" + id);
+		cate_info = Mysql.fetchOne(db, "select id,name,pid from category where id=" + goods_info['cid']);
+		data['head_title'] = goods_info['name'] + ' - ' + data['site_name'];
+		data['keywords'] = goods_info['keywords'];
+		data['description'] = goods_info['description'];
+		data['goods_info'] = goods_info;
+		data['cate_info'] = cate_info;
+		data['sub_cate_list'] = Mysql.fetchAll(db, "select id,name from category where pid=" + 
+						(cate_info['pid'] > 0 ? cate_info['pid'] : cate_info['id']));
+		data['goods_list'] = Base.goodsListByCid(cate_info['id'], 0, 5, ' and g.id != ' + id, ' order by RAND() ');
+		data['datas'] = bltJsonEncode(data);
+		print bltMustacheFileRender("/tpl/goods.tpl", data);
+	endfun
+endclass

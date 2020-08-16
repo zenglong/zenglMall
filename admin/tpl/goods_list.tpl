@@ -91,7 +91,7 @@
 			</li>
 		</ul>
 	</nav>
-	<span>总共{{datas.page.total}}篇文章/共{{datas.page.totalpage}}页</span>
+	<span>总共{{datas.page.total}}个商品/共{{datas.page.totalpage}}页</span>
 </div>
 <script type="text/javascript">
 	var table_goods = new Vue({

@@ -14,7 +14,24 @@
 		</div>
 	</div>
 	<div class="row">
+		<div class="goods-image pull-left">
+			<img v-if="goods_info.thumbnail" :src="goods_info.thumbnail" width="330" height="330"/>
+		</div>
+		<div class="goods-name-price pull-left">
+			<div class="goods-name">{{ goods_info.name }}</div>
+			<div class="goods-price">¥{{ goods_info.price }}</div>
+			<div class="goods-market-price">市场价：{{ goods_info.market_price }}</div>
+			<div class="goods-pay">
+				<a href="javascript:void(0)" id="goods-pay-btn" class="btn btn-danger pull-center" role="button">立即购买</a>
+			</div>
+		</div>
+		<div class="clearfloat"></div>
+		<div class="goods-info" v-html="goods_info.content">
+		</div>
+	</div>
+	<div class="row">
 		<div class="col-xs-18 col-sm-12">
+			<div v-if="goods_list.length > 0" class="relate-goods">相关商品：</div>
 			<div v-for="goods_item in goods_list" class="index-thumbnail">
 				<div class="thumbnail">
 					<a :href="'/goods.zl?id='+goods_item.id" :title="goods_item.name">
@@ -26,11 +43,6 @@
 					</a>
 				</div>
 			</div>
-		</div>
-	</div>
-	<div class="row">
-		<div class="col-xs-18 col-sm-12" style="margin-left: 15px;">
-			<a href="javascript:void(0)" id="load_more" @click="get_goods_list" style="width:100%" class="btn btn-default pull-center" role="button" data-loading-text="加载中...">加载更多商品</a>
 		</div>
 	</div>
 </div>
@@ -46,47 +58,12 @@
 	var main_content = new Vue({
 		el: "#main-content",
 		data: {
-			ajax_page_no: 2,
+			goods_info: datas.goods_info,
 			cate_info: datas.cate_info,
 			sub_cate_list: datas.sub_cate_list,
 			goods_list: datas.goods_list
-		},
-		methods: {
-			get_goods_list: function() {
-				var that = this;
-				$.ajax({
-					type: 'GET',
-					url: "goods_list.zl?timestamp="+(new Date().getTime()),
-					dataType: "json",
-					data: {
-						"act": "ajax_page",
-						"cid": that.cate_info.id,
-						"page": that.ajax_page_no
-					},
-					beforeSend:function(){
-						$("#load_more").button('loading');
-					},
-					success: function(data){
-						if(data.length > 0) {
-							for(var i=0; i < data.length;i++) {
-								that.goods_list.push(data[i]);
-							}
-						}
-						else if (data.length == 0) {
-							alert("没有更多商品了!");
-						}
-						that.ajax_page_no++;
-						$("#load_more").button('reset');
-					},
-					//调用出错执行的函数
-					error: function(err){
-						$("#load_more").button('reset');
-					}
-				});
-			}
 		}
 	});
-
 	if(datas.cate_info['pid'] == 0)
 		datas.top_cid = datas.cate_info['id'];
 	else
