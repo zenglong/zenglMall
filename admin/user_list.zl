@@ -4,7 +4,7 @@ Mysql db;
 db = bltArray();
 Mysql.init(db, config, "tpl/error.tpl");
 data['title'] = '用户列表:';
-data['users'] = Mysql.fetchAll(db, "select * from users");
+data['users'] = Mysql.fetchAll(db, "select * from admin_users");
 data['cur_menu'] = 'user_list.zl';
 data['datas'] = bltJsonEncode(data);
 print bltMustacheFileRender("tpl/user_list.tpl", data);

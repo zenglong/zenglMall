@@ -22,7 +22,7 @@
 			<div class="goods-price">¥{{ goods_info.price }}</div>
 			<div class="goods-market-price">市场价：{{ goods_info.market_price }}</div>
 			<div class="goods-pay">
-				<a href="javascript:void(0)" id="goods-pay-btn" class="btn btn-danger pull-center" role="button">立即购买</a>
+				<a :href="'goods_pay.zl?id=' + goods_info.id" id="goods-pay-btn" class="btn btn-danger pull-center" role="button">立即购买</a>
 			</div>
 		</div>
 		<div class="clearfloat"></div>

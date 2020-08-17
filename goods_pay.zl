@@ -1,0 +1,7 @@
+inc 'common.zl';
+
+querys = rqtGetQuery();
+redirect = 'goods_pay.zl?id=' + querys['id'];
+inc 'user_sess.zl';
+
+print 'goods_pay: goods_id: ' + querys['id'];

@@ -27,13 +27,13 @@ if(mysqlSetCharacterSet(con, "utf8"))
 endif
 
 // 创建后台管理用户表
-if(mysqlQuery(con, "CREATE TABLE users(
+if(mysqlQuery(con, "CREATE TABLE admin_users(
 					  id int NOT NULL AUTO_INCREMENT, 
 					  username varchar(255) NOT NULL DEFAULT '' COMMENT '用户名', 
 					  password varchar(32) NOT NULL DEFAULT '' COMMENT '密码', 
 					  nickname varchar(40) NOT NULL DEFAULT '' COMMENT '用户昵称',
 					  PRIMARY KEY (id)
-					) ENGINE=MyISAM DEFAULT CHARSET utf8 COLLATE utf8_general_ci COMMENT='用户表'"))
+					) ENGINE=MyISAM DEFAULT CHARSET utf8 COLLATE utf8_general_ci COMMENT='后台管理用户表'"))
 	finish_with_error(con);
 endif
 
@@ -83,11 +83,23 @@ if(mysqlQuery(con, "CREATE TABLE friendly_link(
 	finish_with_error(con);
 endif
 
+// 创建前台用户表
+if(mysqlQuery(con, "CREATE TABLE users(
+				  id int NOT NULL AUTO_INCREMENT, 
+				  username varchar(255) NOT NULL DEFAULT '' COMMENT '用户名', 
+				  password varchar(32) NOT NULL DEFAULT '' COMMENT '密码', 
+				  nickname varchar(40) NOT NULL DEFAULT '' COMMENT '用户昵称',
+				  email varchar(255) NOT NULL DEFAULT '' COMMENT '邮箱', 
+				  PRIMARY KEY (id)
+				) ENGINE=MyISAM DEFAULT CHARSET utf8 COLLATE utf8_general_ci COMMENT='前台用户表'"))
+	finish_with_error(con);
+endif
+
 data['username'] = 'admin';
 data['nickname'] = '管理员';
 data['password'] = 'admin@123456';
 
-if(mysqlQuery(con, "INSERT INTO users (`username`,`password`,`nickname`) VALUES('" +
+if(mysqlQuery(con, "INSERT INTO admin_users (`username`,`password`,`nickname`) VALUES('" +
 					mysqlRealEscapeString(con,data['username']) + "', '" +
 					mysqlRealEscapeString(con,bltMd5(data['password'])) + "', '" + 
 					mysqlRealEscapeString(con,data['nickname']) + "')")
