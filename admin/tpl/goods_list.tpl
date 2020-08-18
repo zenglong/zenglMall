@@ -113,7 +113,7 @@
 			delete_goods: function(event) {
 				var id = $(event.target).data('id');
 				var next_span = $(this).next('span');
-				var r = confirm("删除文章确认[id: "+id+"]");
+				var r = confirm("删除商品确认[id: "+id+"]");
 				if(r == true) {
 					$.ajax({
 						type: 'GET',

@@ -70,13 +70,14 @@
 .goods-name-price{
 	margin-left: 50px;
 	padding: 15px;
+	width: 600px;
 }
 .goods-name {
 	min-height: 21px;
 	_height: 21px;
 	font-size: 23px;
 	font-weight: 700;
-	line-height: 21px;
+	line-height: 30px;
 	color: #3C3C3C;
 	padding-bottom: 10px;
 }

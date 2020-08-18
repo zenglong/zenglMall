@@ -1,0 +1,88 @@
+def RSA_PUBLIC 1;
+def RSA_PRIVATE 0;
+
+def USE_EVP 1;
+
+def RSA_SIGN_SHA256 5;
+
+def NULL 0;
+
+// 当出错时，打印错误信息，并退出脚本
+fun exit(msg)
+	global br, gl_use_html;
+	if(gl_use_html)
+		print msg + br;
+		print '</body></html>';
+	else
+		print msg;
+	endif
+	bltExit();
+endfun
+
+// 如果是立即支付方式，则不显示调试信息，直接跳转到支付宝支付页面
+fun print_msg(msg)
+	global immediate_pay;
+	if(!immediate_pay)
+		print msg;
+	endif
+endfun
+
+// 将需要签名的数组里的成员，按照key(键名)的ASCII码序从小到大进行排序
+fun sort_array(params)
+	sort_params = bltArray();
+	while(bltCount(params) > 0)
+		min_k = '';
+		for(i=0;bltIterArray(params,&i,&k,&v);)
+			if(min_k == '' || min_k > k)
+				min_k = k;
+			endif
+		endfor
+		sort_params[min_k] = params[min_k];
+		bltUnset(&params[min_k]);
+	endwhile
+	return sort_params;
+endfun
+
+// 将签名数组转为需要签名的字符串，数组成员之间通过&符号连接，每个成员的key(键名)和对应的值之间用=号连接
+fun get_sign_data(sort_params)
+	str_to_be_signed = '';
+
+	for(i=0;bltIterArray(sort_params,&i,&k,&v);)
+		if(i == 1)
+			str_to_be_signed += k + '=' + v;
+		else
+			str_to_be_signed += '&' + k + '=' + v;
+		endif
+	endfor
+	return str_to_be_signed;
+endfun
+
+// 将支付宝的密钥转为openssl密钥格式
+fun add_key_header_footer(key_content, break_num, header, footer)
+	key_content_len = bltStrLen(key_content);
+	replace = header + '\n' + pcreReplace('(.{'+break_num+'})', '{1}\n', key_content);
+	if(key_content_len % break_num == 0)
+		replace += footer;
+	else
+		replace += '\n' + footer;
+	endif
+	return replace;
+endfun
+
+// 使用支付宝公钥进行验签
+fun check_sign(key_content, data, sign_encode)
+	key = opensslReadKey(key_content, RSA_PUBLIC);
+	if(key == NULL)
+		exit('read key failed: ' + opensslGetError());
+	endif
+
+	sign_len = bltBase64Decode(sign_encode, &sign);
+
+	ret = opensslVerify(data, -1, key, sign, sign_len, RSA_SIGN_SHA256, USE_EVP);
+
+	if(ret < 0)
+		exit('opensslVerify failed: ' + opensslGetError());
+	endif
+
+	return (ret > 0 ? TRUE : FALSE);
+endfun

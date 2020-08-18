@@ -28,25 +28,25 @@ endif
 
 // 创建后台管理用户表
 if(mysqlQuery(con, "CREATE TABLE admin_users(
-					  id int NOT NULL AUTO_INCREMENT, 
-					  username varchar(255) NOT NULL DEFAULT '' COMMENT '用户名', 
-					  password varchar(32) NOT NULL DEFAULT '' COMMENT '密码', 
-					  nickname varchar(40) NOT NULL DEFAULT '' COMMENT '用户昵称',
-					  PRIMARY KEY (id)
-					) ENGINE=MyISAM DEFAULT CHARSET utf8 COLLATE utf8_general_ci COMMENT='后台管理用户表'"))
+	id int NOT NULL AUTO_INCREMENT, 
+	username varchar(255) NOT NULL DEFAULT '' COMMENT '用户名', 
+	password varchar(32) NOT NULL DEFAULT '' COMMENT '密码', 
+	nickname varchar(40) NOT NULL DEFAULT '' COMMENT '用户昵称',
+	PRIMARY KEY (id)
+	) ENGINE=InnoDB DEFAULT CHARSET utf8 COLLATE utf8_general_ci COMMENT='后台管理用户表'"))
 	finish_with_error(con);
 endif
 
 // 创建分类表
 if(mysqlQuery(con, "CREATE TABLE category(
-					  id int NOT NULL AUTO_INCREMENT, 
-					  name varchar(100) NOT NULL DEFAULT '' COMMENT '分类名', 
-					  description varchar(255) NOT NULL DEFAULT '' COMMENT '分类描述',
-					  pid int NOT NULL DEFAULT '0' COMMENT '上级分类ID', 
-					  childcnt int NOT NULL DEFAULT '0' COMMENT '子分类数量',
-					  type tinyint NOT NULL DEFAULT '0' COMMENT '类型:0表示普通商品分类,1表示外部链接',
-					  PRIMARY KEY (id)
-					) ENGINE=MyISAM DEFAULT CHARSET utf8 COLLATE utf8_general_ci COMMENT='分类表'"))
+	id int NOT NULL AUTO_INCREMENT, 
+	name varchar(100) NOT NULL DEFAULT '' COMMENT '分类名', 
+	description varchar(255) NOT NULL DEFAULT '' COMMENT '分类描述',
+	pid int NOT NULL DEFAULT '0' COMMENT '上级分类ID', 
+	childcnt int NOT NULL DEFAULT '0' COMMENT '子分类数量',
+	type tinyint NOT NULL DEFAULT '0' COMMENT '类型:0表示普通商品分类,1表示外部链接',
+	PRIMARY KEY (id)
+	) ENGINE=InnoDB DEFAULT CHARSET utf8 COLLATE utf8_general_ci COMMENT='分类表'"))
 	finish_with_error(con);
 endif
 
@@ -65,7 +65,7 @@ if(mysqlQuery(con, "CREATE TABLE goods(
 	`created_at` timestamp NULL DEFAULT NULL COMMENT '创建时间',
  	`updated_at` timestamp NULL DEFAULT NULL COMMENT '更新时间',
 	PRIMARY KEY (id)
-	) ENGINE=MyISAM DEFAULT CHARSET utf8 COLLATE utf8_general_ci COMMENT='商品表'"))
+	) ENGINE=InnoDB DEFAULT CHARSET utf8 COLLATE utf8_general_ci COMMENT='商品表'"))
 	finish_with_error(con);
 endif
 
@@ -79,19 +79,41 @@ if(mysqlQuery(con, "CREATE TABLE friendly_link(
 	`created_at` timestamp NULL DEFAULT NULL COMMENT '创建时间',
 	`updated_at` timestamp NULL DEFAULT NULL COMMENT '更新时间',
 	PRIMARY KEY (id)
-	) ENGINE=MyISAM DEFAULT CHARSET utf8 COLLATE utf8_general_ci COMMENT='友情链接表'"))
+	) ENGINE=InnoDB DEFAULT CHARSET utf8 COLLATE utf8_general_ci COMMENT='友情链接表'"))
 	finish_with_error(con);
 endif
 
 // 创建前台用户表
 if(mysqlQuery(con, "CREATE TABLE users(
-				  id int NOT NULL AUTO_INCREMENT, 
-				  username varchar(255) NOT NULL DEFAULT '' COMMENT '用户名', 
-				  password varchar(32) NOT NULL DEFAULT '' COMMENT '密码', 
-				  nickname varchar(40) NOT NULL DEFAULT '' COMMENT '用户昵称',
-				  email varchar(255) NOT NULL DEFAULT '' COMMENT '邮箱', 
-				  PRIMARY KEY (id)
-				) ENGINE=MyISAM DEFAULT CHARSET utf8 COLLATE utf8_general_ci COMMENT='前台用户表'"))
+	id int NOT NULL AUTO_INCREMENT, 
+	username varchar(255) NOT NULL DEFAULT '' COMMENT '用户名', 
+	password varchar(32) NOT NULL DEFAULT '' COMMENT '密码', 
+	nickname varchar(40) NOT NULL DEFAULT '' COMMENT '用户昵称',
+	email varchar(255) NOT NULL DEFAULT '' COMMENT '邮箱', 
+	PRIMARY KEY (id)
+	) ENGINE=InnoDB DEFAULT CHARSET utf8 COLLATE utf8_general_ci COMMENT='前台用户表'"))
+	finish_with_error(con);
+endif
+
+// 创建订单表
+if(mysqlQuery(con, "CREATE TABLE orders (
+	id int NOT NULL AUTO_INCREMENT, 
+	oid varchar(40) NOT NULL DEFAULT '' COMMENT '订单号', 
+	gid int NOT NULL DEFAULT '0' COMMENT '商品ID',
+	name varchar(255) NOT NULL DEFAULT '' COMMENT '商品名称',
+	price decimal(10,2) DEFAULT '0.00' COMMENT '商品价格',
+	thumbnail varchar(255) NOT NULL DEFAULT '' COMMENT '商品缩略图',
+	num int NOT NULL DEFAULT '0' COMMENT '订单购买的商品数量',
+	amount decimal(10,2) DEFAULT '0.00' COMMENT '订单金额', 
+	phone varchar(60) NOT NULL DEFAULT '' COMMENT '收货人电话', 
+	true_name varchar(40) NOT NULL DEFAULT '' COMMENT '收货人真实姓名', 
+	address text NOT NULL COMMENT '收货地址', 
+	status varchar(40) NOT NULL DEFAULT '' COMMENT '订单状态',
+	tid varchar(60) NOT NULL DEFAULT '' COMMENT '支付宝交易号', 
+	buyer_remark text NOT NULL COMMENT '买家备注',
+	seller_remark text NOT NULL COMMENT '商家备注',
+	PRIMARY KEY (id)
+	) ENGINE=InnoDB DEFAULT CHARSET utf8 COLLATE utf8_general_ci COMMENT='订单表'"))
 	finish_with_error(con);
 endif
 
