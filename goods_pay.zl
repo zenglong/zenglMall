@@ -10,9 +10,27 @@ gl_use_html = TRUE;
 immediate_pay = TRUE;
 br = '<br/>';
 
-GoodsPay.doPay();
+action = querys['act'] ? querys['act'] : 'showpay';
+if(action == 'dopay')
+	GoodsPay.doPay();
+else
+	GoodsPay.showPay();
+endif
 
 class GoodsPay
+	fun showPay()
+		global querys, db, sess_data;
+		header_data(&data);
+		data['csses'] = bltArray('show_pay.css?v=20200820');
+		id = bltInt(querys['id']);
+		goods_info = Mysql.fetchOne(db, "select id,name,thumbnail,price,description from goods where id=" + id);
+		user_info = Mysql.fetchOne(db, "select id,username,nickname,phone,true_name,address from users where id=" + sess_data['uid']);
+		data['goods_info'] = goods_info;
+		data['user_info'] = user_info;
+		data['datas'] = bltJsonEncode(data);
+		print bltMustacheFileRender("/tpl/show_pay.tpl", data);
+	endfun
+
 	fun doPay()
 		global querys, db, br, config, immediate_pay, sess_data;
 		print '<!Doctype html>';
@@ -22,16 +40,19 @@ class GoodsPay
 		if(!bltCount(goods_info))
 			exit('商品信息不存在');
 		endif
+		posts_data = rqtGetBodyAsArray();
+		order_info['update_time'] = order_info['create_time'] = bltDate('%Y-%m-%d %H:%M:%S');
 		order_info['oid'] = bltDate('%Y%m%d%H%M%S') + bltRand(100, 999) + sess_data['uid'];
 		order_info['gid'] = id;
+		order_info['uid'] = sess_data['uid'];
 		order_info['name'] = goods_info['name'];
 		order_info['price'] = goods_info['price'];
 		order_info['thumbnail'] = goods_info['thumbnail'];
 		order_info['num'] = 1;
 		order_info['amount'] = order_info['price'];
-		order_info['phone'] = '12345678901';
-		order_info['true_name'] = sess_data['nickname'];
-		order_info['address'] = '测试地址111';
+		order_info['phone'] = posts_data['phone'];
+		order_info['true_name'] = posts_data['true_name'];
+		order_info['address'] = posts_data['address'];
 		order_info['status'] = 'WAIT_BUYER';
 
 		biz_content_arr['product_code'] = 'FAST_INSTANT_TRADE_PAY';
@@ -98,7 +119,24 @@ class GoodsPay
 		endif
 
 		Mysql.Insert(db, 'orders', order_info);
-		print_msg('插入orders订单表成功');
+		print_msg('插入orders订单表成功'+ br);
+
+		user_info = Mysql.fetchOne(db, "select id,phone,true_name,address from users where id=" + sess_data['uid']);
+		if(!user_info['phone'] || !user_info['true_name'] || !user_info['address'])
+			user_info['update_time'] = bltDate('%Y-%m-%d %H:%M:%S');
+		endif
+		if(!user_info['phone'])
+			user_info['phone'] = posts_data['phone'];
+		endif
+		if(!user_info['true_name'])
+			user_info['true_name'] = posts_data['true_name'];
+		endif
+		if(!user_info['address'])
+			user_info['address'] = posts_data['address'];
+		endif
+		Mysql.Update(db, 'users', user_info, 'id=' + user_info['id']);
+		print_msg('更新用户表成功'+ br);
+
 		print submit_html;
 	endfun
 endclass

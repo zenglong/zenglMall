@@ -33,6 +33,7 @@ if(ret)
 	if(sort_array['trade_status'] == 'TRADE_SUCCESS')
 		order_info['status'] = 'WAIT_SELLER_SEND';
 		order_info['tid'] = sort_body_arr['trade_no'];
+		order_info['update_time'] = bltDate('%Y-%m-%d %H:%M:%S');
 		Mysql.Update(db, 'orders', order_info, 'id=' + order_info['id']);
 	endif
 	// 验签成功，则返回success
