@@ -1,0 +1,4 @@
+inc '../common.zl';
+inc '../user_sess.zl';
+
+print 'username:' + sess_data['username'];

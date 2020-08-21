@@ -1,6 +1,7 @@
 use builtin, request, mysql, session;
 def TRUE 1;
 def FALSE 0;
+def USER_ADMIN 'user_admin/admin.zl';
 inc 'config.zl';
 inc 'mysql.zl';
 

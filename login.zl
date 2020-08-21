@@ -1,6 +1,7 @@
 inc 'common.zl';
+inc 'login_base.zl';
 
-Login.checkUserSession();
+LoginBase.checkUserSession();
 posts = rqtGetBodyAsArray();
 if(!posts['submit'])
 	Login.show();
@@ -9,21 +10,11 @@ else
 endif
 
 class Login
-	fun checkUserSession()
-		cookies = rqtGetCookie();
-		sess_data = sessGetData(bltStr(&cookies['USR_SESSION']));
-		if(bltCount(sess_data) > 0 && sess_data['uid'] > 0)
-			rqtSetResponseHeader("HTTP/1.1 302 Moved Temporarily");
-			rqtSetResponseHeader("Location: admin.zl");
-			bltExit();
-		endif
-	endfun
-
 	fun show()
 		header_data(&data);
 		querys = rqtGetQuery();
 		data['csses'] = bltArray('login.css?v=20200817');
-		data['redirect'] = querys['redirect'];
+		data['redirect'] = querys['redirect'] ? querys['redirect'] : USER_ADMIN;
 		data['title'] = '用户登录';
 		data['datas'] = bltJsonEncode(data);
 		print bltMustacheFileRender("tpl/login.tpl",data);
@@ -34,7 +25,7 @@ class Login
 		Mysql db;
 		bltStr(&posts['username'], TRUE);
 		bltStr(&posts['password'], TRUE);
-		result = Mysql.fetchOne(db, "select * from users where username='" + mysqlRealEscapeString(db.con, posts['username']) + "'");
+		result = Mysql.fetchOne(db, "select id,username,password,nickname from users where username='" + mysqlRealEscapeString(db.con, posts['username']) + "'");
 		data['msg'] = 'failed';
 		data['errmsg'] = '用户名或密码错误！';
 		if(bltCount(result) > 0)

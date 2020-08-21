@@ -1,7 +1,7 @@
 {{> /tpl/header.tpl}}
 {{=<% %>=}}
 
-<div class="container" id="login-container">
+<div class="container" id="register-container">
 	<div class="row">
 		<div class="col-xs-18 col-sm-12">
 			<div class="alert alert-danger alert-dismissible err-alert" role="alert" v-if="error_title">
@@ -12,24 +12,31 @@
 			<div class="form-signin">
 				<h2 class="form-signin-heading" style="text-align: center;">{{ title }}</h2>
 				<label for="username" class="sr-only">用户名</label>
-				<input type="text" id="username" class="form-control" placeholder="用户名" required autofocus @keyup.enter="submit_click">
+				<input type="text" id="username" class="form-control" placeholder="用户名" v-model="username" required autofocus>
+				<label for="email" class="sr-only">邮箱</label>
+				<input type="text" id="email" class="form-control" placeholder="邮箱" v-model="email" required autofocus>
 				<label for="password" class="sr-only">密码</label>
-				<input type="password" id="password" class="form-control" placeholder="密码" required @keyup.enter="submit_click">
-				<button id="submit" @click="submit_click" class="btn btn-lg btn-danger btn-block" type="button" data-loading-text="登录中...">登 录</button>
-				<a :href="'register.zl?redirect=' + encodeURIComponent(redirect)">立即注册</a>
+				<input type="password" id="password" class="form-control" placeholder="密码" v-model="password" required>
+				<label for="confirm-password" class="sr-only">确认密码</label>
+				<input type="password" id="confirm-password" class="form-control" placeholder="确认密码" v-model="confirm_password" required>
+				<button id="submit" @click="submit_click" class="btn btn-lg btn-danger btn-block" type="button" data-loading-text="注册中...">注 册</button>
 			</div>
 		</div>
 	</div>
 </div>
 
 <script type="text/javascript">
-	var login_vm = new Vue({
-		el: "#login-container",
+	var register_vm = new Vue({
+		el: "#register-container",
 		data: {
 			title: datas.title,
 			error_title: '',
 			error_content: '',
-			redirect: datas.redirect
+			username: '',
+			password: '',
+			confirm_password: '',
+			email: '',
+			redirect: 'login.zl?redirect=' + encodeURIComponent(datas.redirect)
 		},
 		methods: {
 			set_error: function(error_title, error_content) {
@@ -43,11 +50,13 @@
 				var that = this;
 				$.ajax({
 					type: 'POST',
-					url: "login.zl",
+					url: "register.zl",
 					dataType: "json",
 					data: {
-						"username": $('#username').val(),
-						"password": $('#password').val(),
+						"username": that.username,
+						"email": that.email,
+						"password": that.password,
+						"confirm_password": that.confirm_password,
 						"submit": "Submit"
 					},
 					beforeSend:function(){
@@ -56,19 +65,19 @@
 					},
 					success: function(data){
 						if(data.msg == 'success') {
-							$('#submit').text('登录成功 准备跳转...');
+							$('#submit').text('注册成功 准备跳转...');
 							setTimeout(function(){
 								window.location = that.redirect;
 							}, 1000);
 						}
 						else {
-							login_vm.set_error('登录失败：', data.errmsg);
+							that.set_error('注册失败：', data.errmsg);
 							$("#submit").button('reset');
 						}
 					},
 					//调用出错执行的函数
 					error: function(err){
-						login_vm.set_error('登录失败：', '未知错误！');
+						that.set_error('注册失败：', '未知错误！');
 						$("#submit").button('reset');
 					}
 				});
