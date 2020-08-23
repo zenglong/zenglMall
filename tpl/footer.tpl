@@ -1,4 +1,4 @@
-<div class="container" id="main-footer">
+<div class="container" id="main-footer" v-if="!has_menus">
 	<hr>
 	<footer>
 	<p>&copy; {{ site_name }}</p>
@@ -20,6 +20,12 @@
 				categories: datas.categories
 			}
 		});
+	var main_footer = new Vue({
+		el: "#main-footer",
+		data: {
+			has_menus: (typeof menus == 'undefined') ? false : true
+		}
+	});
 </script>
 <!-- Bootstrap core JavaScript -->
 <script src="/assets/js/bootstrap.min.js"></script>

@@ -1,4 +1,18 @@
 inc '../common.zl';
 inc '../user_sess.zl';
 
-print 'username:' + sess_data['username'];
+Admin.index();
+
+class Admin
+	fun index()
+		global querys, db, sess_data;
+		header_data(&data, TRUE, &css);
+		css[] = 'user_admin/admin.css?v=20200823';
+		user_info = Mysql.fetchOne(db, "select id,username,nickname,email from users where id=" + sess_data['uid']);
+		data['title'] = '会员中心';
+		data['user_info'] = user_info;
+		data['cur_menu'] = 'admin.zl';
+		data['datas'] = bltJsonEncode(data);
+		print bltMustacheFileRender("tpl/admin.tpl", data);
+	endfun
+endclass

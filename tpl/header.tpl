@@ -15,7 +15,7 @@
 	<!-- Custom styles for this template -->
 	<link href="/assets/css/common.css?v=20200815" rel="stylesheet">
 	<%# csses %>
-	<link href="/assets/css/<% . %>" rel="stylesheet">
+	<link href="/assets/css/<%{ . }%>" rel="stylesheet">
 	<%/ csses %>
 
 	<script src="/assets/js/vue.min.js"></script>

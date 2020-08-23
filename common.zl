@@ -8,11 +8,15 @@ inc 'mysql.zl';
 db = init_db();
 categories = Mysql.fetchAll(db, "select id,name,description from category where pid=0 order by id asc");
 
-fun header_data(data)
+fun header_data(data, is_user_admin = FALSE, css)
 	global categories, config;
 	data['head_title'] = data['site_name'] = config['site_name'];
 	data['description'] = config['site_desc'];
 	data['categories'] = categories;
+	if(is_user_admin)
+		css[] = 'user_admin/common.css?v=20200823';
+		data['csses'] = css;
+	endif
 endfun
 
 // 初始化数据库连接
