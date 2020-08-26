@@ -1,0 +1,50 @@
+inc '../common.zl';
+inc '../user_sess.zl';
+inc 'helper.zl';
+
+querys = rqtGetQuery();
+action = querys['act'] ? querys['act'] : 'index';
+if(action == 'view')
+	OrderList.view(bltInt(querys['id']));
+else
+	OrderList.index();
+endif
+
+class OrderList
+	fun index()
+		global querys, db, sess_data;
+		header_data(&data, TRUE, &css);
+		css[] = 'user_admin/order_list.css?v=20200826';
+		where = " where uid = " + sess_data['uid'];
+		search_oid = bltStr(&querys['search_oid']);
+		if(search_oid)
+			where += ' and oid like "%' + Mysql.Escape(db, search_oid) + '%"';
+			data['search_oid'] = search_oid;
+		endif
+		search_name = bltStr(&querys['search_name']);
+		if(search_name)
+			where += ' and name like "%' + Mysql.Escape(db, search_name) + '%"';
+			data['search_name'] = search_name;
+		endif
+		search_status = bltStr(&querys['search_status']);
+		if(search_status)
+			where += ' and status = "' + Mysql.Escape(db, search_status) + '"';
+			data['search_status'] = search_status;
+		endif
+		tmp = Mysql.fetchOne(db, "select count(1) as cnt from orders " + where);
+		total = bltInt(tmp['cnt']);
+		page = get_page(10, total, 10);
+		data['page'] = page;
+		data['orders'] = Mysql.fetchAll(db, "select id,oid,name,thumbnail,amount,num,status from orders "+ where +
+							" order by id desc limit " + page['offset'] + "," + page['limit']);
+		data['title'] = '订单列表';
+		data['cur_menu'] = 'order_list.zl';
+		data['datas'] = bltJsonEncode(data);
+		print bltMustacheFileRender("tpl/order_list.tpl", data);
+	endfun
+
+	fun view(id)
+		global querys;
+		print 'id:' + id;
+	endfun
+endclass

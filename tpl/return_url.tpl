@@ -5,6 +5,7 @@
 	<div class="row">
 		<div class="col-xs-18 col-sm-12">
 			<h3>{{ msg }}</h3>
+			<a href="/user_admin/order_list.zl">查看订单列表</a>
 		</div>
 	</div>
 </div>
