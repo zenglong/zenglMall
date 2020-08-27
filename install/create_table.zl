@@ -107,6 +107,7 @@ if(mysqlQuery(con, "CREATE TABLE orders (
 	gid int NOT NULL DEFAULT '0' COMMENT '商品ID',
 	uid int NOT NULL DEFAULT '0' COMMENT '用户ID',
 	name varchar(255) NOT NULL DEFAULT '' COMMENT '商品名称',
+	description varchar(1024) NOT NULL DEFAULT '' COMMENT '商品描述',
 	price decimal(10,2) DEFAULT '0.00' COMMENT '商品价格',
 	thumbnail varchar(255) NOT NULL DEFAULT '' COMMENT '商品缩略图',
 	num int NOT NULL DEFAULT '0' COMMENT '订单购买的商品数量',

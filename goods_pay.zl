@@ -5,6 +5,7 @@ querys = rqtGetQuery();
 redirect = 'goods_pay.zl?id=' + querys['id'];
 inc 'user_sess.zl';
 inc 'alipay_func.zl';
+inc 'goods_pay_base.zl';
 
 gl_use_html = TRUE;
 immediate_pay = TRUE;
@@ -18,7 +19,7 @@ else
 endif
 
 class GoodsPay
-	fun showPay()
+	fun showPay(errmsg = '', posts_data = '')
 		global querys, db, sess_data;
 		header_data(&data);
 		data['csses'] = bltArray('show_pay.css?v=20200820');
@@ -26,13 +27,23 @@ class GoodsPay
 		goods_info = Mysql.fetchOne(db, "select id,name,thumbnail,price,description from goods where id=" + id);
 		user_info = Mysql.fetchOne(db, "select id,username,nickname,phone,true_name,address from users where id=" + sess_data['uid']);
 		data['goods_info'] = goods_info;
+		data['posts_data'] = posts_data;
 		data['user_info'] = user_info;
+		data['errmsg'] = errmsg;
 		data['datas'] = bltJsonEncode(data);
 		print bltMustacheFileRender("/tpl/show_pay.tpl", data);
+		if(errmsg)
+			bltExit();
+		endif
 	endfun
 
 	fun doPay()
-		global querys, db, br, config, immediate_pay, sess_data;
+		global querys, db, br, sess_data;
+		posts_data = rqtGetBodyAsArray();
+		if(!posts_data['phone'] || !posts_data['true_name'] || !posts_data['address'])
+			GoodsPay.showPay('收货人姓名，电话，地址都不能为空!', posts_data);
+		endif
+
 		print '<!Doctype html>';
 		print '<html><head><meta http-equiv="content-type" content="text/html;charset=utf-8" /></head><body>';
 		id = bltInt(querys['id']);
@@ -40,12 +51,12 @@ class GoodsPay
 		if(!bltCount(goods_info))
 			exit('商品信息不存在');
 		endif
-		posts_data = rqtGetBodyAsArray();
 		order_info['update_time'] = order_info['create_time'] = bltDate('%Y-%m-%d %H:%M:%S');
 		order_info['oid'] = bltDate('%Y%m%d%H%M%S') + bltRand(100, 999) + sess_data['uid'];
 		order_info['gid'] = id;
 		order_info['uid'] = sess_data['uid'];
 		order_info['name'] = goods_info['name'];
+		order_info['description'] = goods_info['description'];
 		order_info['price'] = goods_info['price'];
 		order_info['thumbnail'] = goods_info['thumbnail'];
 		order_info['num'] = 1;
@@ -53,70 +64,10 @@ class GoodsPay
 		order_info['phone'] = posts_data['phone'];
 		order_info['true_name'] = posts_data['true_name'];
 		order_info['address'] = posts_data['address'];
+		order_info['buyer_remark'] = posts_data['buyer_remark'];
 		order_info['status'] = 'WAIT_BUYER';
 
-		biz_content_arr['product_code'] = 'FAST_INSTANT_TRADE_PAY';
-		biz_content_arr['body'] = goods_info['description'];
-		biz_content_arr['subject'] = order_info['name'];
-		biz_content_arr['total_amount'] = order_info['amount'];
-		biz_content_arr['out_trade_no'] = order_info['oid'];
-		method = 'alipay.trade.page.pay';
-
-		biz_content = bltJsonEncode(biz_content_arr);
-		print_msg('biz_content:' + biz_content + br + br);
-
-		// 设置params数组，该数组里的成员值会转为http请求参数传递给支付宝网关
-		params['biz_content'] = biz_content;
-		params['method'] = method;
-		params['alipay_sdk'] = 'alipay-sdk-zengl-20200627';
-		params['charset'] = 'UTF-8';
-		params['format'] = 'json';
-		params['version'] = '1.0';
-		params['timestamp'] = bltDate('%Y-%m-%d %H:%M:%S');
-		params['app_id'] = config['app_id'];
-		params['sign_type'] = config['sign_type'];
-		params['notify_url'] = config['notify_url'];
-		params['return_url'] = config['return_url'];
-
-		// 通过sort_array脚本函数(在alipay_func.zl脚本中定义)，将params请求参数数组，按照key(键名)的ASCII码序从小到大进行排序
-		sort_params =  sort_array(params);
-
-		// 通过get_sign_data脚本函数(也定义在alipay_func.zl脚本中)，将sort_params排序过的请求参数数组，
-		// 转为需要签名的字符串，数组成员之间通过&符号连接，每个成员的key(键名)和对应的值之间用=号连接
-		str_to_be_signed = get_sign_data(sort_params);
-
-		print_msg('str_to_be_signed:' + bltHtmlEscape(str_to_be_signed) + br + br);
-
-		key_content = add_key_header_footer(config['merchant_private_key'], 64, '-----BEGIN RSA PRIVATE KEY-----', '-----END RSA PRIVATE KEY-----');
-		key = opensslReadKey(key_content, RSA_PRIVATE);
-		if(key == NULL)
-			exit('read key failed: ' + opensslGetError());
-		endif
-
-		ret = opensslSign(str_to_be_signed, -1, key, &sign, &sign_len, RSA_SIGN_SHA256, USE_EVP);
-		if(!ret)
-			exit('sign failed: ' + opensslGetError());
-		endif
-
-		sign_encode = bltBase64Encode(sign);
-		print_msg('sign_encode:' + sign_encode + br + br);
-
-		sort_params['sign'] = sign_encode;
-		if(immediate_pay)
-			hidden_style = " style = 'display:none;'";
-		else
-			hidden_style = '';
-		endif
-		submit_html = "<div"+hidden_style+"><form id='alipaysubmit' name='alipaysubmit' action='" + 
-				config['gateway_url'] + "?charset=" + sort_params['charset'] + "' method='POST'>\n";
-		for(i=0;bltIterArray(sort_params,&i,&k,&v);)
-			v = bltStrReplace(v, "'", "&apos;");
-			submit_html += "<div><input name='" + k + "' value='" + v + "'/></div>\n";
-		endfor
-		submit_html += "<div><input type='submit' value='ok'></div>\n</form></div>";
-		if(immediate_pay)
-			submit_html += "<div>下单成功，正在跳转到支付宝支付页面...</div><script>document.forms['alipaysubmit'].submit();</script>";
-		endif
+		submit_html = GoodsPayBase.returnDoPayHtml(order_info);
 
 		Mysql.Insert(db, 'orders', order_info);
 		print_msg('插入orders订单表成功'+ br);

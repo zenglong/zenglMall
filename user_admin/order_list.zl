@@ -44,7 +44,12 @@ class OrderList
 	endfun
 
 	fun view(id)
-		global querys;
-		print 'id:' + id;
+		global db, sess_data;
+		header_data(&data, TRUE, &css);
+		data['order_info'] = Mysql.fetchOne(db, "select * from orders where uid = " + sess_data['uid'] + " and id = " + id);
+		data['title'] = '订单详情';
+		data['cur_menu'] = 'order_list.zl';
+		data['datas'] = bltJsonEncode(data);
+		print bltMustacheFileRender("tpl/order_view.tpl", data);
 	endfun
 endclass

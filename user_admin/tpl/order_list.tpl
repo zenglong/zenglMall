@@ -46,7 +46,7 @@
 					<td v-if="order.status == 'WAIT_BUYER'">待付款</td>
 					<td v-else-if="order.status == 'WAIT_SELLER_SEND'">待发货</td>
 					<td v-else-if="order.status == 'WAIT_BUYER_CONFIRM'">待收货</td>
-					<td v-else>"未知状态</td>
+					<td v-else>未知状态</td>
 					<td>
 						<a :href="'order_list.zl?act=view&amp;id='+order.id" title="查看订单详情" class="glyphicon glyphicon-eye-open" aria-hidden="true"></a>
 					</td>

@@ -1,0 +1,29 @@
+use pcre,openssl;
+inc '../common.zl';
+inc '../user_sess.zl';
+inc '../alipay_func.zl';
+inc '../goods_pay_base.zl';
+
+gl_use_html = TRUE;
+immediate_pay = TRUE;
+br = '<br/>';
+
+querys = rqtGetQuery();
+OrderPay.doPay(bltInt(querys['id']));
+
+class OrderPay
+	fun doPay(id)
+		global db, sess_data;
+		print '<!Doctype html>';
+		print '<html><head><meta http-equiv="content-type" content="text/html;charset=utf-8" /></head><body>';
+		order_info = Mysql.fetchOne(db, "select * from orders where uid = " + sess_data['uid'] + " and id = " + id);
+		if(!bltCount(order_info))
+			exit('订单信息不存在');
+		endif
+		if(order_info['status'] == 'WAIT_BUYER')
+			print GoodsPayBase.returnDoPayHtml(order_info, FALSE);
+		else
+			exit('订单不是待付款状态');
+		endif
+	endfun
+endclass

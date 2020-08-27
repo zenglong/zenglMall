@@ -1,0 +1,76 @@
+class GoodsPayBase
+	fun returnDoPayHtml(order_info, is_insert_to_order = TRUE)
+		global br, config, immediate_pay;
+		biz_content_arr['product_code'] = 'FAST_INSTANT_TRADE_PAY';
+		biz_content_arr['body'] = order_info['description'];
+		biz_content_arr['subject'] = order_info['name'];
+		biz_content_arr['total_amount'] = order_info['amount'];
+		biz_content_arr['out_trade_no'] = order_info['oid'];
+		method = 'alipay.trade.page.pay';
+
+		biz_content = bltJsonEncode(biz_content_arr);
+		print_msg('biz_content:' + biz_content + br + br);
+
+		// 设置params数组，该数组里的成员值会转为http请求参数传递给支付宝网关
+		params['biz_content'] = biz_content;
+		params['method'] = method;
+		params['alipay_sdk'] = 'alipay-sdk-zengl-20200627';
+		params['charset'] = 'UTF-8';
+		params['format'] = 'json';
+		params['version'] = '1.0';
+		params['timestamp'] = bltDate('%Y-%m-%d %H:%M:%S');
+		params['app_id'] = config['app_id'];
+		params['sign_type'] = config['sign_type'];
+		params['notify_url'] = config['notify_url'];
+		params['return_url'] = config['return_url'];
+
+		// 通过sort_array脚本函数(在alipay_func.zl脚本中定义)，将params请求参数数组，按照key(键名)的ASCII码序从小到大进行排序
+		sort_params =  sort_array(params);
+
+		// 通过get_sign_data脚本函数(也定义在alipay_func.zl脚本中)，将sort_params排序过的请求参数数组，
+		// 转为需要签名的字符串，数组成员之间通过&符号连接，每个成员的key(键名)和对应的值之间用=号连接
+		str_to_be_signed = get_sign_data(sort_params);
+
+		print_msg('str_to_be_signed:' + bltHtmlEscape(str_to_be_signed) + br + br);
+
+		key_content = add_key_header_footer(config['merchant_private_key'], 64, '-----BEGIN RSA PRIVATE KEY-----', '-----END RSA PRIVATE KEY-----');
+		key = opensslReadKey(key_content, RSA_PRIVATE);
+		if(key == NULL)
+			exit('read key failed: ' + opensslGetError());
+		endif
+
+		ret = opensslSign(str_to_be_signed, -1, key, &sign, &sign_len, RSA_SIGN_SHA256, USE_EVP);
+		if(!ret)
+			exit('sign failed: ' + opensslGetError());
+		endif
+
+		sign_encode = bltBase64Encode(sign);
+		print_msg('sign_encode:' + sign_encode + br + br);
+
+		sort_params['sign'] = sign_encode;
+		if(immediate_pay)
+			hidden_style = " style = 'display:none;'";
+		else
+			hidden_style = '';
+		endif
+		submit_html = "<div"+hidden_style+"><form id='alipaysubmit' name='alipaysubmit' action='" + 
+				config['gateway_url'] + "?charset=" + sort_params['charset'] + "' method='POST'>\n";
+		for(i=0;bltIterArray(sort_params,&i,&k,&v);)
+			v = bltStrReplace(v, "'", "&apos;");
+			submit_html += "<div><input name='" + k + "' value='" + v + "'/></div>\n";
+		endfor
+		submit_html += "<div><input type='submit' value='ok'></div>\n</form></div>";
+
+		if(is_insert_to_order)
+			pre_msg = '下单成功，';
+		else
+			pre_msg = '';
+		endif
+
+		if(immediate_pay)
+			submit_html += "<div>" + pre_msg +"正在跳转到支付宝支付页面...</div><script>document.forms['alipaysubmit'].submit();</script>";
+		endif
+
+		return submit_html;
+	endfun
+endclass
