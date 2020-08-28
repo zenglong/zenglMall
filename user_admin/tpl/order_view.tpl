@@ -52,7 +52,7 @@
 	</div>
 	<div class="form-group" v-if="order_info.seller_remark != ''">
 		<label>商家备注：</label>
-		<div>{{order_info.seller_remark}}</div>
+		<div v-html="order_info.seller_remark"></div>
 	</div>
 	<div class="form-group">
 		<label>订单创建时间：</label>
@@ -61,6 +61,10 @@
 	<div class="form-group">
 		<label>订单更新时间：</label>
 		<span>{{order_info.update_time}}</span>
+	</div>
+	<div class="form-group" v-if="order_info.send_time">
+		<label>订单设置成待收货状态的时间：</label>
+		<span>{{order_info.send_time}}</span>
 	</div>
 	<div class="form-group">
 		<label>订单状态：</label>

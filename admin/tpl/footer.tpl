@@ -8,6 +8,7 @@
 			{link: "user_list.zl", name: "用户列表"},
 			{link: "category.zl", name: "分类列表"},
 			{link: "goods.zl", name: "商品列表"},
+			{link: "order_list.zl", name: "订单列表"}
 		];
 		for(var index = 0; index < menus.length; index++){
 			if(menus[index].link == datas.cur_menu) {
