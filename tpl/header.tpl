@@ -18,6 +18,7 @@
 	<link href="/assets/css/<%{ . }%>" rel="stylesheet">
 	<%/ csses %>
 
+	<script src="/assets/js/common.js?v=20200829"></script>
 	<script src="/assets/js/vue.min.js"></script>
 	<script src="/assets/js/jquery.min.js"></script>
 	<%# head_js %>

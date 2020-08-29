@@ -121,7 +121,8 @@ if(mysqlQuery(con, "CREATE TABLE orders (
 	seller_remark text NOT NULL COMMENT '商家备注',
 	`create_time` timestamp NULL DEFAULT NULL COMMENT '创建时间',
  	`update_time` timestamp NULL DEFAULT NULL COMMENT '更新时间',
-	`send_time` timestamp NULL DEFAULT NULL COMMENT '发货时间',
+	`send_time` timestamp NULL DEFAULT NULL COMMENT '设置为待收货的时间',
+	`confirm_time` timestamp NULL DEFAULT NULL COMMENT '确认收货的时间',
 	PRIMARY KEY (id)
 	) ENGINE=InnoDB DEFAULT CHARSET utf8 COLLATE utf8_general_ci COMMENT='订单表'"))
 	finish_with_error(con);

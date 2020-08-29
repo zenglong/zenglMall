@@ -3,7 +3,8 @@ function get_all_order_status()
 	return [
 		{name:'待付款', value:'WAIT_BUYER'},
 		{name:'待发货', value:'WAIT_SELLER_SEND'},
-		{name:'待收货', value:'WAIT_BUYER_CONFIRM'}
+		{name:'待收货', value:'WAIT_BUYER_CONFIRM'},
+		{name:'已收货', value:'BUYER_CONFIRM'}
 	];
 }
 

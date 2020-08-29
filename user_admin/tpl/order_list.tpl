@@ -15,9 +15,7 @@
 			<div class="form-group" id="search-status">
 				<select name="search_status" v-model="search_status" class="form-control">
 					<option value="">选择订单状态</option>
-					<option value="WAIT_BUYER">待付款</option>
-					<option value="WAIT_SELLER_SEND">待发货</option>
-					<option value="WAIT_BUYER_CONFIRM">待收货</option>
+					<option v-for="per_status in all_order_status" :value="per_status.value">{{per_status.name}}</option>
 				</select>
 			</div>
 			<div style="float:left"><button name="s" value="search" type="submit" class="btn btn-primary">搜索</button></div>
@@ -43,10 +41,7 @@
 					<td>{{order.name}}</td>
 					<td>{{order.amount}}</td>
 					<td>{{order.num}}</td>
-					<td v-if="order.status == 'WAIT_BUYER'">待付款</td>
-					<td v-else-if="order.status == 'WAIT_SELLER_SEND'">待发货</td>
-					<td v-else-if="order.status == 'WAIT_BUYER_CONFIRM'">待收货</td>
-					<td v-else>未知状态</td>
+					<td>{{get_status_name(order.status)}}</td>
 					<td>
 						<a :href="'order_list.zl?act=view&amp;id='+order.id" title="查看订单详情" class="glyphicon glyphicon-eye-open" aria-hidden="true"></a>
 					</td>
@@ -69,16 +64,23 @@
 			page_no: i
 		});
 	}
+	var all_order_status = get_all_order_status();
 	var order_list_vm = new Vue({
 		el: "#order-list",
 		data: {
 			page_info: datas.page,
 			pages: pages,
 			title: datas.title,
+			all_order_status: all_order_status,
 			search_oid: datas.search_oid,
 			search_name: datas.search_name,
 			search_status: datas.search_status,
 			orders: datas.orders
+		},
+		methods: {
+			get_status_name: function(value) {
+				return get_order_status_name(all_order_status, value);
+			}
 		}
 	});
 </script>

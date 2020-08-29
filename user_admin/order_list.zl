@@ -4,10 +4,14 @@ inc 'helper.zl';
 
 querys = rqtGetQuery();
 action = querys['act'] ? querys['act'] : 'index';
-if(action == 'view')
-	OrderList.view(bltInt(querys['id']));
-else
+if(action == 'index')
 	OrderList.index();
+elif(action == 'view')
+	OrderList.view(bltInt(querys['id']));
+elif(action == 'buyer_confirm')
+	OrderList.setBuyerConfirm();
+else
+	print 'invalid act';
 endif
 
 class OrderList
@@ -51,5 +55,22 @@ class OrderList
 		data['cur_menu'] = 'order_list.zl';
 		data['datas'] = bltJsonEncode(data);
 		print bltMustacheFileRender("tpl/order_view.tpl", data);
+	endfun
+
+	fun setBuyerConfirm()
+		global db, sess_data;
+		posts = rqtGetBodyAsArray();
+		id = bltInt(posts['id']);
+		order_info = Mysql.fetchOne(db, "select * from orders where uid = " + sess_data['uid'] + " and id = " + id);
+		if(!bltCount(order_info))
+			ajax_return('订单信息不存在');
+		endif
+		if(order_info['status'] != 'WAIT_BUYER_CONFIRM')
+			ajax_return('只能对待收货的订单进行确认收货');
+		endif
+		data['status'] = 'BUYER_CONFIRM';
+		data['confirm_time'] = data['update_time'] = bltDate("%Y-%m-%d %H:%M:%S");
+		Mysql.Update(db, 'orders', data, 'id=' + id);
+		ajax_return();
 	endfun
 endclass

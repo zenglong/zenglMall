@@ -57,6 +57,10 @@
 		<label>订单设置成待收货状态的时间：</label>
 		<span>{{order_info.send_time}}</span>
 	</div>
+	<div class="form-group" v-if="order_info.confirm_time">
+		<label>订单确认收货时间：</label>
+		<span>{{order_info.confirm_time}}</span>
+	</div>
 	<div class="form-group">
 		<label>订单状态：</label>
 		<span>{{order_info_status_name}}</span>

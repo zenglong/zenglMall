@@ -62,19 +62,23 @@
 		<label>订单更新时间：</label>
 		<span>{{order_info.update_time}}</span>
 	</div>
-	<div class="form-group" v-if="order_info.send_time">
+	<div class="form-group" v-if="order_info.send_time && order_info.status == 'WAIT_BUYER_CONFIRM'">
 		<label>订单设置成待收货状态的时间：</label>
 		<span>{{order_info.send_time}}</span>
 	</div>
+	<div class="form-group" v-else-if="order_info.confirm_time && order_info.status == 'BUYER_CONFIRM'">
+		<label>订单确认收货时间：</label>
+		<span>{{order_info.confirm_time}}</span>
+	</div>
 	<div class="form-group">
 		<label>订单状态：</label>
-		<span v-if="order_info.status == 'WAIT_BUYER'">待付款</span>
-		<span v-else-if="order_info.status == 'WAIT_SELLER_SEND'">待发货</span>
-		<span v-else-if="order_info.status == 'WAIT_BUYER_CONFIRM'">待收货</span>
-		<span v-else>未知状态</span>
+		<span>{{order_info_status_name}}</span>
 	</div>
 	<div class="form-group" v-if="order_info.status == 'WAIT_BUYER'">
 		<a :href="'order_pay.zl?id=' + order_info.id" class="btn btn-danger" target="_blank" style="width:150px">继续付款</a>
+	</div>
+	<div class="form-group" v-else-if="order_info.status == 'WAIT_BUYER_CONFIRM'">
+		<button id="buyer-confirm" class="btn btn-danger" type="button" @click="buyer_confirm()" data-loading-text="操作中...">确认收货</button>
 	</div>
 </div>
 
@@ -84,6 +88,46 @@
 		data: {
 			title: datas.title,
 			order_info: datas.order_info
+		},
+		computed: {
+			order_info_status_name: function() {
+				return get_order_status_name(null, this.order_info.status);
+			}
+		},
+		methods: {
+			buyer_confirm: function() {
+				var that = this;
+				var r = confirm("是否确认收货?");
+				if(r !== true) {
+					return ;
+				}
+				$.ajax({
+					type: 'POST',
+					url: "order_list.zl?act=buyer_confirm",
+					dataType: "json",
+					data: {
+						"id": that.order_info.id
+					},
+					beforeSend:function(){
+						$("#buyer-confirm").button('loading');
+					},
+					success: function(data){
+						$("#buyer-confirm").button('reset');
+						if(data.msg == 'success') {
+							alert('操作成功!');
+							window.location.reload();
+						}
+						else {
+							alert('操作失败：' + data.errmsg);
+						}
+					},
+					//调用出错执行的函数
+					error: function(err){
+						alert('操作失败：未知错误！');
+						$("#buyer-confirm").button('reset');
+					}
+				});
+			}
 		}
 	});
 </script>
