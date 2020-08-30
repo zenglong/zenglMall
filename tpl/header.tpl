@@ -45,6 +45,7 @@
 				<li v-for="category in categories" :class="{active:category.cur_cid}">
 					<a :href="'/goods_list.zl?cid='+category.id">{{category.name}}</a>
 				</li>
+				<li :class="{active:has_menus}"><a href="/user_admin/admin.zl">会员中心</a></li>
 			</ul>
 		</div><!-- /.nav-collapse -->
 	</div><!-- /.container -->

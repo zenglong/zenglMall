@@ -1,10 +1,56 @@
 inc 'common.zl';
+inc 'helper.zl';
 
-Mysql db;
-db = bltArray();
-Mysql.init(db, config, "tpl/error.tpl");
-data['title'] = '用户列表:';
-data['users'] = Mysql.fetchAll(db, "select * from admin_users");
-data['cur_menu'] = 'user_list.zl';
-data['datas'] = bltJsonEncode(data);
-print bltMustacheFileRender("tpl/user_list.tpl", data);
+querys = rqtGetQuery();
+action = querys['act'] ? querys['act'] : 'index';
+if(action == 'index')
+	User.index();
+elif(action == 'view')
+	User.view(bltInt(querys['id']));
+else
+	print 'invalid act';
+endif
+
+class User
+	fun index()
+		global querys;
+		db = init_db();
+		data['title'] = '前台用户列表:';
+		data['csses', 0] = 'user_list.css?v=20200830';
+		data['cur_menu'] = 'user_list.zl';
+		where = " where 1 ";
+		search_username = bltStr(&querys['search_username']);
+		if(search_username)
+			where += ' and username like "%' + Mysql.Escape(db, search_username) + '%"';
+			data['search_username'] = search_username;
+		endif
+		search_nickname = bltStr(&querys['search_nickname']);
+		if(search_nickname)
+			where += ' and nickname like "%' + Mysql.Escape(db, search_nickname) + '%"';
+			data['search_nickname'] = search_nickname;
+		endif
+		search_email = bltStr(&querys['search_email']);
+		if(search_email)
+			where += ' and email like "%' + Mysql.Escape(db, search_email) + '%"';
+			data['search_email'] = search_email;
+		endif
+		tmp = Mysql.fetchOne(db, "select count(1) as cnt from users " + where);
+		total = bltInt(tmp['cnt']);
+		page = get_page(10, total, 10);
+		data['page'] = page;
+		data['users'] = Mysql.fetchAll(db, "select id,username,nickname,email,reg_time from users " + 
+						where + " order by id desc limit " + page['offset'] + "," + page['limit']);
+		data['datas'] = bltJsonEncode(data);
+		print bltMustacheFileRender("tpl/user_list.tpl", data);
+	endfun
+
+	fun view(id)
+		db = init_db();
+		data['user_info'] = Mysql.fetchOne(db, "select * from users where id = " + id);
+		bltUnset(&data['user_info', 'password']);
+		data['title'] = '前台用户详情';
+		data['cur_menu'] = 'user_list.zl';
+		data['datas'] = bltJsonEncode(data);
+		print bltMustacheFileRender("tpl/user_view.tpl", data);
+	endfun
+endclass

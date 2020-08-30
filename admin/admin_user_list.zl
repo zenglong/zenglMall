@@ -1,0 +1,10 @@
+inc 'common.zl';
+
+Mysql db;
+db = bltArray();
+Mysql.init(db, config, "tpl/error.tpl");
+data['title'] = '后台用户列表:';
+data['users'] = Mysql.fetchAll(db, "select * from admin_users");
+data['cur_menu'] = 'admin_user_list.zl';
+data['datas'] = bltJsonEncode(data);
+print bltMustacheFileRender("tpl/admin_user_list.tpl", data);

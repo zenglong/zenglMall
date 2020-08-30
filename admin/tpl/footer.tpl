@@ -5,7 +5,8 @@
 	<script type="text/javascript">
 		var menus = [
 			{link: "admin.zl", name: "概览"},
-			{link: "user_list.zl", name: "用户列表"},
+			{link: "admin_user_list.zl", name: "后台用户"},
+			{link: "user_list.zl", name: "前台用户"},
 			{link: "category.zl", name: "分类列表"},
 			{link: "goods.zl", name: "商品列表"},
 			{link: "order_list.zl", name: "订单列表"}

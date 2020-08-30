@@ -51,7 +51,7 @@
 					</td>
 				</tr>
 				</template>
-				<tr v-else><td colspan=6>暂无订单</td></tr>
+				<tr v-else><td colspan=8>暂无订单</td></tr>
 			</tbody>
 		</table>
 		<%={{ }}=%>

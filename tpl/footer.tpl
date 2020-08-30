@@ -13,17 +13,19 @@
 		else
 			categories[index]['cur_cid'] = false;
 	}
+	var has_menus = ((typeof menus == 'undefined') ? false : true);
 	var header_navbar = new Vue({
 			el: '#header-navbar',
 			data: {
 				site_name: datas.site_name,
-				categories: datas.categories
+				categories: datas.categories,
+				has_menus: has_menus
 			}
 		});
 	var main_footer = new Vue({
 		el: "#main-footer",
 		data: {
-			has_menus: (typeof menus == 'undefined') ? false : true
+			has_menus: has_menus
 		}
 	});
 </script>
