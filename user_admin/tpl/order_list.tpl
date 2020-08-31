@@ -1,6 +1,6 @@
-{{> /tpl/header.tpl}}
-{{> tpl/header.tpl}}
-{{=<% %>=}}
+{{=<{ }>=}}
+<{> /tpl/header.tpl }>
+<{> tpl/header.tpl }>
 
 <div id="order-list">
 	<h2 class="sub-header">{{title}}</h2>
@@ -47,12 +47,10 @@
 					</td>
 				</tr>
 				</template>
-				<tr v-else><td colspan=6>暂无订单</td></tr>
+				<tr v-else><td colspan=7>暂无订单</td></tr>
 			</tbody>
 		</table>
-		<%={{ }}=%>
-		{{> tpl/page.tpl}}
-		{{=<% %>=}}
+		<{> tpl/page.tpl }>
 	</div>
 </div>
 
@@ -85,6 +83,5 @@
 	});
 </script>
 
-<%={{ }}=%>
-{{> tpl/footer.tpl}}
-{{> /tpl/footer.tpl}}
+<{> tpl/footer.tpl }>
+<{> /tpl/footer.tpl }>

@@ -1,11 +1,11 @@
 <!Doctype html>
-{{=<% %>=}}
+{{=<{ }>=}}
 <html lang="zh-CN">
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<title><% title %></title>
+	<title><{ title }></title>
 	<!-- Bootstrap core CSS -->
 	<link href="assets/css/bootstrap.min.css" rel="stylesheet">
 	<!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
@@ -24,7 +24,7 @@
 			<span class="err-content">{{ error_content }}</span>
 		</div>
 		<div class="form-signin">
-			<h2 class="form-signin-heading" style="text-align: center;"><% title %></h2>
+			<h2 class="form-signin-heading" style="text-align: center;"><{ title }></h2>
 			<label for="username" class="sr-only">用户名</label>
 			<input type="text" id="username" class="form-control" placeholder="用户名" required autofocus @keyup.enter="$('#submit').click()">
 			<label for="password" class="sr-only">密码</label>

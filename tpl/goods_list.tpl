@@ -1,5 +1,5 @@
-{{> /tpl/header.tpl}}
-{{=<% %>=}}
+{{=<{ }>=}}
+<{> /tpl/header.tpl }>
 
 <div class="container" id="main-content">
 	<div class="row" v-if="sub_cate_list.length > 0">
@@ -93,5 +93,4 @@
 		datas.top_cid = datas.cate_info['pid'];
 </script>
 
-<%={{ }}=%>
-{{> /tpl/footer.tpl}}
+<{> /tpl/footer.tpl }>

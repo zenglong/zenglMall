@@ -1,6 +1,6 @@
-{{> /tpl/header.tpl}}
-{{> tpl/header.tpl}}
-{{=<% %>=}}
+{{=<{ }>=}}
+<{> /tpl/header.tpl }>
+<{> tpl/header.tpl }>
 
 <div id="admin_main">
 	<h2 class="sub-header">{{title}}</h2>
@@ -18,6 +18,5 @@
 	});
 </script>
 
-<%={{ }}=%>
-{{> tpl/footer.tpl}}
-{{> /tpl/footer.tpl}}
+<{> tpl/footer.tpl }>
+<{> /tpl/footer.tpl }>

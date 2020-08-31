@@ -1,5 +1,5 @@
-{{> tpl/header.tpl}}
-{{=<% %>=}}
+{{=<{ }>=}}
+<{> tpl/header.tpl }>
 
 <div id="category_add_div">
 <h2 class="sub-header">{{datas.title}}
@@ -113,5 +113,4 @@ var category_add_vm = new Vue({
 });
 </script>
 
-<%={{ }}=%>
-{{> tpl/footer.tpl}}
+<{> tpl/footer.tpl }>

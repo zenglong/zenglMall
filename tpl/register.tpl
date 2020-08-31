@@ -1,5 +1,5 @@
-{{> /tpl/header.tpl}}
-{{=<% %>=}}
+{{=<{ }>=}}
+<{> /tpl/header.tpl }>
 
 <div class="container" id="register-container">
 	<div class="row">
@@ -86,5 +86,4 @@
 	});
 </script>
 
-<%={{ }}=%>
-{{> /tpl/footer.tpl}}
+<{> /tpl/footer.tpl }>

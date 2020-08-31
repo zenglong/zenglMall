@@ -1,29 +1,29 @@
 <!Doctype html>
-{{=<% %>=}}
+{{=<{ }>=}}
 <html lang="zh-CN">
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<title><% title %></title>
+	<title><{ title }></title>
 	<!-- Bootstrap core CSS -->
 	<link href="assets/css/bootstrap.min.css" rel="stylesheet">
 	<!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
 	<link href="assets/css/ie10-viewport-bug-workaround.css" rel="stylesheet">
 	<!-- Custom styles for this template -->
 	<link href="assets/css/dashboard.css" rel="stylesheet">
-	<%# csses%>
-	<link href="assets/css/<% . %>" rel="stylesheet">
-	<%/ csses%>
+	<{# csses}>
+	<link href="assets/css/<{ . }>" rel="stylesheet">
+	<{/ csses}>
 
 	<script src="/assets/js/common.js?v=20200828"></script>
 	<script src="/assets/js/vue.min.js"></script>
 	<script src="/assets/js/jquery.min.js"></script>
-	<%# head_js%>
-	<script src="assets/js/<%{.}%>"></script>
-	<%/ head_js%>
+	<{# head_js}>
+	<script src="assets/js/<{{.}}>"></script>
+	<{/ head_js}>
 	<script type="text/javascript">
-		var datas = <%{datas}%>;
+		var datas = <{{datas}}>;
 	</script>
 </head>
 <body>

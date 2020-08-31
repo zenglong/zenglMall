@@ -1,5 +1,5 @@
-{{> tpl/header.tpl}}
-{{=<% %>=}}
+{{=<{ }>=}}
+<{> tpl/header.tpl }>
 
 <div id="goods_add_div">
 <h2 class="sub-header">{{datas.title}}
@@ -106,5 +106,4 @@ $('#thumbnail-upload').fileupload({
 });
 </script>
 
-<%={{ }}=%>
-{{> tpl/footer.tpl}}
+<{> tpl/footer.tpl }>

@@ -1,5 +1,5 @@
-{{> tpl/header.tpl}}
-{{=<% %>=}}
+{{=<{ }>=}}
+<{> tpl/header.tpl }>
 
 <div id="user-view">
 	<h2 class="sub-header">{{title}}
@@ -8,6 +8,7 @@
 	<div class="form-group">
 		<label>id：</label>
 		<span>{{user_info.id}}</span>
+	</div>
 	<div class="form-group">
 		<label>用户名：</label>
 		<span>{{user_info.username}}</span>
@@ -56,5 +57,4 @@
 	});
 </script>
 
-<%={{ }}=%>
-{{> tpl/footer.tpl}}
+<{> tpl/footer.tpl }>

@@ -1,5 +1,5 @@
-{{> tpl/header.tpl}}
-{{=<% %>=}}
+{{=<{ }>=}}
+<{> tpl/header.tpl }>
 
 <h2 class="sub-header">
 	商品列表
@@ -155,5 +155,4 @@
 	table_goods.pages = pages;
 </script>
 
-<%={{ }}=%>
-{{> tpl/footer.tpl}}
+<{> tpl/footer.tpl }>
