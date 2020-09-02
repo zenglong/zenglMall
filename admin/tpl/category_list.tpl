@@ -1,5 +1,5 @@
-{{=<{ }>=}}
-<{> tpl/header.tpl }>
+{{=<% %>=}}
+<%> tpl/header.tpl %>
 <h2 class="sub-header" id="sub-header">
 	<template v-if="category">[{{category.name}}] </template>
 	{{pid_title}}{{title}}
@@ -92,4 +92,4 @@
 		}
 	});
 </script>
-<{> tpl/footer.tpl }>
+<%> tpl/footer.tpl %>

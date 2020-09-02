@@ -1,5 +1,5 @@
-{{=<{ }>=}}
-<{> tpl/header.tpl }>
+{{=<% %>=}}
+<%> tpl/header.tpl %>
 
 <div id="userlist_main">
 <h2 class="sub-header">{{all_datas.title}}</h2>
@@ -32,4 +32,4 @@
 	});
 </script>
 
-<{> tpl/footer.tpl }>
+<%> tpl/footer.tpl %>

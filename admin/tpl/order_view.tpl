@@ -1,5 +1,5 @@
-{{=<{ }>=}}
-<{> tpl/header.tpl }>
+{{=<% %>=}}
+<%> tpl/header.tpl %>
 
 <div id="order-view">
 	<h2 class="sub-header">{{title}}
@@ -168,4 +168,4 @@
 	});
 </script>
 
-<{> tpl/footer.tpl }>
+<%> tpl/footer.tpl %>
