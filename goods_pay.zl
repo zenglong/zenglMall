@@ -40,6 +40,11 @@ class GoodsPay
 	fun doPay()
 		global querys, db, br, sess_data;
 		posts_data = rqtGetBodyAsArray();
+
+		for(i=0;bltIterArray(posts_data,&i,&k,&v);)
+			posts_data[k] = bltTrim( bltStr(v) );
+		endfor
+
 		if(!posts_data['phone'] || !posts_data['true_name'] || !posts_data['address'])
 			GoodsPay.showPay('收货人姓名，电话，地址都不能为空!', posts_data);
 		endif

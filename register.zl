@@ -33,10 +33,10 @@ class Register
 	fun doReg()
 		global posts, db;
 		Mysql db;
-		user_data['username'] = bltStr(posts['username']);
-		user_data['email'] = bltStr(posts['email']);
-		user_data['password'] = bltStr(posts['password']);
-		bltStr(&posts['confirm_password'], TRUE);
+		user_data['username'] = bltTrim( bltStr(posts['username']) );
+		user_data['email'] = bltTrim( bltStr(posts['email']) );
+		user_data['password'] = bltTrim( bltStr(posts['password']) );
+		posts['confirm_password'] = bltTrim( bltStr(posts['confirm_password']) );
 		if(!user_data['username'] || !user_data['email'] || !user_data['password'] || !posts['confirm_password'])
 			Register.Return('用户名，邮箱，密码和确认密码都不能为空!');
 		endif

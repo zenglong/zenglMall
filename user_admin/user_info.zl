@@ -1,0 +1,60 @@
+use pcre;
+inc '../common.zl';
+inc '../user_sess.zl';
+
+querys = rqtGetQuery();
+action = querys['act'] ? querys['act'] : 'show';
+if(action == 'show')
+	UserInfo.show();
+elif(action == 'modify')
+	UserInfo.modify();
+else
+	print 'invalid act';
+endif
+
+class UserInfo
+	fun show(err_msg = '', success_msg = '', posts_data = '')
+		global db, sess_data;
+		header_data(&data, TRUE, &css);
+		css[] = 'user_admin/user_info.css?v=20200908';
+		data['user_info'] = Mysql.fetchOne(db, "select id,username,nickname,email,phone,true_name,address from users where id = " + sess_data['uid']);
+		data['err_msg'] = err_msg;
+		data['success_msg'] = success_msg;
+		data['posts_data'] = posts_data;
+		data['title'] = '修改信息';
+		data['cur_menu'] = 'user_info.zl';
+		data['datas'] = bltJsonEncode(data);
+		print bltMustacheFileRender("tpl/user_info.tpl", data);
+		if(err_msg)
+			bltExit();
+		endif
+	endfun
+
+	fun modify()
+		global db, sess_data;
+		posts_data = rqtGetBodyAsArray();
+
+		for(i=0;bltIterArray(posts_data,&i,&k,&v);)
+			if(k == 'nickname' || k == 'email' || k == 'phone' || k == 'true_name' || k == 'address')
+				posts_data[k] = bltTrim( bltStr(v) );
+			else
+				bltUnset(&posts_data[k]);
+			endif
+		endfor
+
+		if(!posts_data['nickname'] || !posts_data['email'] || !posts_data['phone'] || !posts_data['true_name'] || !posts_data['address'])
+			UserInfo.show('用户昵称，邮箱，收货人姓名，电话，地址都不能为空!', '', posts_data);
+		endif
+
+		if(!pcreMatch('^[_a-z0-9-]+(\.[_a-z0-9-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,})$', posts_data['email'], &results, 'is'))
+			UserInfo.show('邮箱格式不正确!', '', posts_data);
+		endif
+		user_info = Mysql.fetchOne(db, "select id,username from users where (nickname='" + Mysql.Escape(db, posts_data['username']) + 
+						"' or email='" + Mysql.Escape(db, posts_data['email']) + "') and id != " + sess_data['uid']);
+		if(bltCount(user_info) > 0)
+			UserInfo.show('用户昵称或邮箱已存在!', '', posts_data);
+		endif
+		Mysql.Update(db, 'users', posts_data, 'id=' + sess_data['uid']);
+		UserInfo.show('', '修改成功！');
+	endfun
+endclass

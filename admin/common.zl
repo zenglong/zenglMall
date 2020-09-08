@@ -3,6 +3,7 @@ def TRUE 1;
 def FALSE 0;
 inc '../config.zl';
 inc '../mysql.zl';
+inc '../fatal_error.zl';
 
 cookies = rqtGetCookie();
 sess_data = sessGetData(bltStr(&cookies['ADM_SESSION']));

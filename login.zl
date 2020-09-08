@@ -23,8 +23,8 @@ class Login
 	fun checkUserPass()
 		global posts, db;
 		Mysql db;
-		bltStr(&posts['username'], TRUE);
-		bltStr(&posts['password'], TRUE);
+		posts['username'] = bltTrim( bltStr(posts['username']) );
+		posts['password'] = bltTrim( bltStr(posts['password']) );
 		result = Mysql.fetchOne(db, "select id,username,password,nickname from users where username='" + mysqlRealEscapeString(db.con, posts['username']) + "'");
 		data['msg'] = 'failed';
 		data['errmsg'] = '用户名或密码错误！';

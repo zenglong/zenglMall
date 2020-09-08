@@ -4,6 +4,7 @@ def FALSE 0;
 def USER_ADMIN 'user_admin/admin.zl';
 inc 'config.zl';
 inc 'mysql.zl';
+inc 'fatal_error.zl';
 
 db = init_db();
 categories = Mysql.fetchAll(db, "select id,name,description from category where pid=0 order by id asc");

@@ -1,0 +1,10 @@
+def WRITE_MODE 1;
+def APPEND_MODE 2;
+def DEFAULT_WRITE_LEN -1;
+
+fun fatal_error_callback(error, stack)
+	bltWriteFile('logs/fatal_error_'+bltDate('%Y%m%d')+'.log', bltDate('%Y-%m-%d %H:%M:%S') + ' - ' + error + ' backtrace: \n' + stack + '\n', 
+		DEFAULT_WRITE_LEN, APPEND_MODE);
+endfun
+
+bltFatalErrorCallback('fatal_error_callback');
