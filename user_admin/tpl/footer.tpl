@@ -7,6 +7,7 @@
 		{link: "admin.zl", name: "概览"},
 		{link: "order_list.zl", name: "订单列表"},
 		{link: "user_info.zl", name: "修改信息"},
+		{link: "password.zl", name: "修改密码"},
 		{link: "logout.zl", name: "退出登录"}
 	];
 	for(var index = 0; index < menus.length; index++){
