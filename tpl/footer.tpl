@@ -4,7 +4,7 @@
 	<p>&copy; {{ site_name }}</p>
 	</footer>
 </div>
-
+</div>
 <script type="text/javascript">
 	var categories = datas.categories;
 	for(var index = 0; index < categories.length; index++){
@@ -24,6 +24,12 @@
 		});
 	var main_footer = new Vue({
 		el: "#main-footer",
+		mounted: function () {
+			// setTimeout(function(){
+				document.getElementById('page-wrapper').style.display = 'block';
+				document.getElementById('page-loading').style.display = 'none';
+			// }, 300); // timeout for debug loading
+		},
 		data: {
 			has_menus: has_menus
 		}

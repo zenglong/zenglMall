@@ -1,6 +1,6 @@
 </div> <!-- <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main"> -->
 </div> <!-- <div class="row"> -->
-</div> <!-- <div class="container-fluid"> -->
+</div> <!-- <div class="container-fluid" id="page-wrapper" style="display: none"> -->
 
 	<script type="text/javascript">
 		var menus = [
@@ -21,6 +21,12 @@
 		}
 		var menu_vm = new Vue({
 			el: '#main-sidebar',
+			mounted: function () {
+				// setTimeout(function(){
+					document.getElementById('page-wrapper').style.display = 'block';
+					document.getElementById('page-loading').style.display = 'none';
+				// }, 300); // timeout for debug loading
+			},
 			data: {
 				menus: menus
 			}

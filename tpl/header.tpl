@@ -18,6 +18,22 @@
 	<link href="/assets/css/<{{ . }}>" rel="stylesheet">
 	<{/ csses }>
 
+	<style type="text/css">
+		#page-loading { width: 100%; height: 100%; }
+		#page-loading span {
+			position: absolute;
+			display: block;
+			font-size: 20px;
+			line-height: 50px;
+			top: 50%;
+			left: 50%;
+			width: 200px;
+			height: 100px;
+			-webkit-transform: translateY(-50%)  translateX(-50%);
+			transform: translateY(-50%)  translateX(-50%);
+		}
+	</style>
+
 	<script src="/assets/js/common.js?v=20200829"></script>
 	<script src="/assets/js/vue.min.js"></script>
 	<script src="/assets/js/jquery.min.js"></script>
@@ -29,6 +45,10 @@
 	</script>
 </head>
 <body>
+<div id="page-loading">
+	<span>页面加载中...</span>
+</div>
+<div id="page-wrapper" style="display: none">
 <nav class="navbar navbar-fixed-top navbar-inverse" id="header-navbar">
 	<div class="container">
 		<div class="navbar-header">
