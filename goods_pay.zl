@@ -70,6 +70,7 @@ class GoodsPay
 		order_info['true_name'] = posts_data['true_name'];
 		order_info['address'] = posts_data['address'];
 		order_info['buyer_remark'] = posts_data['buyer_remark'];
+		order_info['seller_remark'] = '';
 		order_info['status'] = 'WAIT_BUYER';
 
 		submit_html = GoodsPayBase.returnDoPayHtml(order_info);

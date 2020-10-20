@@ -53,6 +53,7 @@ class Register
 		endif
 		user_data['password'] = bltMd5(user_data['password']);
 		user_data['reg_time'] = user_data['update_time'] = bltDate('%Y-%m-%d %H:%M:%S');
+		user_data['address'] = '';
 		Mysql.Insert(db, 'users', user_data);
 		Register.Return();
 	endfun
