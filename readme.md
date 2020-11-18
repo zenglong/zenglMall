@@ -10,15 +10,19 @@ CentOS Linux release 7.7.1908 (Core)
 
 ## 配置zenglServer
 
-首先配置zenglServer，让其网站根目录指向zenglMall：
+首先配置zenglServer，让其网站根目录指向zenglMall(也就是下面配置文件中的webroot所对应的配置)：
 
 ```
 ................................. (zenglServer的config.zl配置，省略N行)
+port = 8083; // 绑定的端口
+
+.................................
 webroot = "/home/zengl/zenglMall"; // web根目录，指向zenglMall所在的目录
 
 session_dir = "my_sessions"; // 会话目录
 session_expire = 1440; // 会话默认超时时间(以秒为单位)，可以根据需要调整会话超时时间
 session_cleaner_interval = 3600; // 会话文件清理进程的清理时间间隔(以秒为单位)
+.................................
 ```
 
 然后运行zenglServer(v0.1.0的zenglMall对zenglServer的最低版本要求是v0.23.0，需要开启mysql，magick，pcre以及openssl模块)：
@@ -58,7 +62,7 @@ zengl     2513  0.0  0.0 112712   968 pts/0    S+   14:37   0:00 grep --color=au
 [zengl@localhost zenglServer]$
 ```
 
-如果要外网访问到，在测试环境下，可以直接关闭防火墙(正式环境则需要配置防火墙，让默认的8083端口或者zenglServer在配置文件中实际使用的端口允许通过防火墙)
+如果要外网能访问到，可以关闭防火墙，或者配置防火墙开放zenglServer绑定的端口(默认是8083端口)
 
 ```
 [zengl@localhost zenglServer]$ sudo systemctl stop firewalld
@@ -71,7 +75,7 @@ zengl     2513  0.0  0.0 112712   968 pts/0    S+   14:37   0:00 grep --color=au
 [zengl@localhost zenglServer]$ 
 ```
 
-接下来，还需要启动mysql数据库服务，下面是作者的本地测试环境的启动命令：
+接下来，还需要启动mysql数据库服务，下面是作者在本地测试环境中的启动命令：
 
 ```
 [zengl@localhost zenglServer]$ sudo systemctl start mariadb
@@ -82,11 +86,11 @@ zengl     2513  0.0  0.0 112712   968 pts/0    S+   14:37   0:00 grep --color=au
 ............................................
 ```
 
-下面创建数据库表结构。
+下面创建zenglMall相关的数据库表结构。
 
 ## 创建数据库表结构
 
-要进入后台管理界面，还需要创建数据库表结构，首先修改zenglMall根目录中的config.zl配置：
+要访问商城首页和进入后台管理界面，还需要创建数据库表结构，首先修改zenglMall根目录中的config.zl配置：
 
 ```
 config['db_host'] = 'localhost';  // 填写mysql数据库ip
@@ -113,7 +117,7 @@ config['merchant_private_key'] = '';
 config['alipay_public_key'] = '';
 ```
 
-需要确保上面数据库配置的正确性，如果没有创建过testmall(假如你在配置中使用了testmall作为数据库名的话)，就先创建该数据库，如果要测试支付功能，则需要配置上面的支付宝的APPID，商户私钥等。
+需要确保上面数据库配置的正确性，如果没有创建过testmall(假如你在配置中使用了testmall作为数据库名的话)，就先创建该数据库，如果要测试支付功能，则还需要配置上面的支付宝的APPID，商户私钥等。
 
 以下命令用于创建testmall数据库：
 
@@ -148,7 +152,11 @@ Bye
 [zengl@localhost zenglServer]$ 
 ```
 
-配置完并创建了数据库后，假设当前服务器的ip地址是192.168.1.113，那么访问 http://192.168.1.113:8083/install/create_table.zl 该脚本会自动在数据库中创建所需的表结构，例如 admin_users(后台管理用户表)，并在admin_users表中插入一条初始数据，该脚本执行成功后，会返回用户名，密码之类的信息，如下所示：
+配置并创建完数据库后，就可以执行zenglMall商城系统的安装操作了。
+
+假设服务器的ip地址是192.168.1.113，那么zenglMall的安装地址就是 http://192.168.1.113:8083/install/create_table.zl
+
+create_table.zl这个安装脚本会在数据库中创建所需的表结构，例如 admin_users(后台管理用户表)，category(商品分类表)，goods(商品表)等，并在admin_users表中插入一条初始数据，该脚本执行成功后，会返回用户名，密码之类的信息，如下所示：
 
 ```
 mysql客户端库的版本信息：5.5.64-MariaDB
@@ -170,7 +178,7 @@ zenglMall版本信息：0.1.0
 
 安装会生成install.lock锁文件，以防止误操作。在有锁文件的情况下，再次执行create_table.zl脚本，就会提示 lock file exists ，并阻止脚本继续执行
 
-安装完毕后，就可以通过 http://192.168.1.113:8083/index.zl 查看到商城的首页了，当然一开始首页的导航栏只有一个会员中心的菜单，更多的菜单需要在后台添加，页面上面也没有商品信息，也需要先在后台添加商品。
+安装完毕后，就可以通过 http://192.168.1.113:8083/index.zl 的地址看到商城的首页了，当然一开始首页的导航栏只有一个会员中心的菜单，更多的菜单需要在后台通过添加顶层分类的形式来添加。一开始页面上面还没有商品信息，商品信息也需要在管理后台添加。
 
 我们可以使用 admin 和 admin@123456 的初始后台管理员的用户名和密码，通过 http://192.168.1.113:8083/admin/login.zl 登录后台
 
@@ -180,7 +188,7 @@ zenglMall版本信息：0.1.0
 
 ## 使用nginx反向代理
 
-虽然zenglServer可以处理html，css，js之类的静态文件，但是zenglServer主要还是用于执行zengl脚本用的，静态文件只做了一些基础的支持，因此，正式上线时，需要使用nginx作为前端处理静态文件，并将zengl脚本的请求通过反向代理转发给zenglServer，这样，zenglServer就只需要处理zengl脚本即可，静态文件就可以交由nginx去处理。
+虽然zenglServer可以处理html，css，js之类的静态文件，但是zenglServer主要还是用于执行zengl脚本用的，静态文件只做了一些基础的支持，因此，正式上线时，需要使用nginx作为前端来处理静态文件，并将zengl脚本的请求通过反向代理转发给zenglServer，这样，zenglServer就只需处理zengl脚本即可，静态文件则交由nginx去处理。
 
 下面是nginx反向代理的基本配置(这只是示例，可以根据需要调整nginx中的配置)：
 
@@ -201,23 +209,26 @@ server {
 }
 ```
 
-确保zenglServer对zenglMall目录有读写权限，同时nginx对zenglMall目录有读权限(让nginx能读取到静态文件即可)
+上面配置会将以.zl结尾的文件名也就是zengl脚本文件，通过反向代理的形式，转发给绑定了本地8083端口的zenglServer去处理(实际绑定的端口号是由zenglServer配置文件中的port变量来配置的，默认是8083端口)。
 
-使用上面nginx配置后，直接访问 http://mall.zengl.test 就可以看到商城首页了(因为上面nginx配置的默认首页是index.zl)
+请确保zenglServer对zenglMall目录有读写权限，同时nginx对zenglMall目录有读权限(让nginx能读取到静态文件即可)
+
+使用上面nginx配置后，直接访问 http://mall.zengl.test 就可以看到商城首页了(因为上面nginx配置的默认首页文档中包含了index.zl，因此会自动访问zenglMall根目录中的index.zl脚本)
 
 访问 http://mall.zengl.test/admin/login.zl 可以看到后台登录页面。
 
 如果要测试支付功能，请确保nginx中设置的域名能被外网访问到(否则支付宝无法将支付完成情况通过异步通知地址反馈给服务器)。
 
-要使用https访问zenglServer的话，也可以通过nginx的反向代理来实现：
+要使用https访问zenglServer的话，也可以通过nginx的反向代理来实现(下面的配置只是示例，可以根据需要调整nginx中的配置)：
 
 ```
 server {
-     listen 80;
      listen 443 ssl;
 
      ssl_certificate /etc/nginx/ssl/mall.zengl.test.crt;
      ssl_certificate_key /etc/nginx/ssl/mall.zengl.test.key;
+     ssl_session_cache shared:SSL:10m;
+     ssl_session_timeout 60m;
 
      server_name mall.zengl.test;
      root /usr/share/nginx/html/zenglMall;
