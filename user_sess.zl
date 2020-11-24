@@ -3,5 +3,7 @@ sess_data = sessGetData(bltStr(&cookies['USR_SESSION']));
 if(bltCount(sess_data) == 0 || !sess_data['uid'])
 	rqtSetResponseHeader("HTTP/1.1 302 Moved Temporarily");
 	rqtSetResponseHeader("Location: /login.zl?redirect=" + bltUrlEncode(redirect ? redirect : USER_ADMIN));
+	rqtSetResponseHeader("Cache-Control: no-store,no-cache,must-revalidate,post-check=0,pre-check=0");
+	rqtSetResponseHeader("Pragma: no-cache");
 	bltExit();
 endif
