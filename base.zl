@@ -1,4 +1,6 @@
+// 基础类，提供一些可供其他类使用的通用方法
 class Base
+	// 根据cid(分类ID)获取商品列表信息，offset设置查询偏移值，num用于设置需要返回的商品数量，where设置查询条件，order设置排序信息，返回的数组中包含了所需的商品列表信息
 	fun goodsListByCid(cid, offset = 0, num = 10, where = '' , order = ' order by g.id desc ')
 		global db;
 		return Mysql.fetchAll(db, "select g.id,g.name,price,thumbnail from goods as g inner join category as c on c.id = g.cid where (g.cid = " + 

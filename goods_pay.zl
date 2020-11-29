@@ -19,6 +19,7 @@ else
 endif
 
 class GoodsPay
+	// 显示商品相关的确认支付页面
 	fun showPay(errmsg = '', posts_data = '')
 		global querys, db, sess_data;
 		header_data(&data);
@@ -37,6 +38,7 @@ class GoodsPay
 		endif
 	endfun
 
+	// 执行商品支付操作，包括下单操作(也就是在订单表中添加订单记录)
 	fun doPay()
 		global querys, db, br, sess_data;
 		posts_data = rqtGetBodyAsArray();
@@ -56,6 +58,7 @@ class GoodsPay
 		if(!bltCount(goods_info))
 			exit('商品信息不存在');
 		endif
+		// order_info数组用于设置需要添加到订单表中的订单记录相关的各个字段信息，例如oid(商家订单号)，gid(商品ID)，uid(当前下单的用户ID)，name(商品名称)等字段
 		order_info['update_time'] = order_info['create_time'] = bltDate('%Y-%m-%d %H:%M:%S');
 		order_info['oid'] = bltDate('%Y%m%d%H%M%S') + bltRand(100, 999) + sess_data['uid'];
 		order_info['gid'] = id;
@@ -66,13 +69,14 @@ class GoodsPay
 		order_info['thumbnail'] = goods_info['thumbnail'];
 		order_info['num'] = 1;
 		order_info['amount'] = order_info['price'];
-		order_info['phone'] = posts_data['phone'];
-		order_info['true_name'] = posts_data['true_name'];
-		order_info['address'] = posts_data['address'];
-		order_info['buyer_remark'] = posts_data['buyer_remark'];
+		order_info['phone'] = posts_data['phone'];          // 设置收货人电话
+		order_info['true_name'] = posts_data['true_name'];  // 设置收货人姓名
+		order_info['address'] = posts_data['address'];      // 设置收货地址
+		order_info['buyer_remark'] = posts_data['buyer_remark']; // 设置买家备注
 		order_info['seller_remark'] = '';
 		order_info['status'] = 'WAIT_BUYER';
 
+		// 获取支付宝支付表单，通过向支付宝网关提交form表单，来跳转到支付宝网站(跳转到支付宝网站后，输入帐号密码，或者用APP扫码方式来完成支付操作)
 		submit_html = GoodsPayBase.returnDoPayHtml(order_info);
 
 		Mysql.Insert(db, 'orders', order_info);
@@ -91,6 +95,7 @@ class GoodsPay
 		if(!user_info['address'])
 			user_info['address'] = posts_data['address'];
 		endif
+		// 如果前台用户之前没有设置过电话，姓名，收货地址信息的话，就将确认支付页面传递过来的信息设置到users前台用户表的该用户记录中
 		Mysql.Update(db, 'users', user_info, 'id=' + user_info['id']);
 		print_msg('更新用户表成功'+ br);
 

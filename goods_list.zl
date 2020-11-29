@@ -1,6 +1,7 @@
 inc 'common.zl';
 inc 'base.zl';
 
+// 商品列表页面默认显示的商品数量，以及异步加载更多商品时，需要加载的商品数量
 def PAGE_NUM 20;
 
 querys = rqtGetQuery();
@@ -14,6 +15,7 @@ else
 endif
 
 class GoodsList
+	// 商品列表页面
 	fun index()
 		global querys, db;
 		header_data(&data);
@@ -30,6 +32,7 @@ class GoodsList
 		print bltMustacheFileRender("/tpl/goods_list.tpl", data);
 	endfun
 
+	// 异步加载更多商品
 	fun ajaxPage()
 		global querys, db;
 		page = bltInt(querys['page']);

@@ -22,7 +22,7 @@
 					<input type="text" class="form-control" name="phone" :value="posts_data.phone" v-once id="phone" placeholder="收货人电话">
 				</div>
 				<div class="form-group">
-					<label for="address">收获地址:</label>
+					<label for="address">收货地址:</label>
 					<textarea class="form-control" rows="20" cols="30" style="height: 150px;" name="address" id="address" v-once>{{ posts_data.address }}</textarea>
 				</div>
 				<div class="form-group">

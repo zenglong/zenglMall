@@ -6,9 +6,12 @@ inc 'config.zl';
 inc 'mysql.zl';
 inc 'fatal_error.zl';
 
+// 前台脚本的全局数据库连接变量，通过该变量可以执行数据库相关的各种操作
 db = init_db();
+// 获取所有的顶层分类(一级分类)
 categories = Mysql.fetchAll(db, "select id,name,description from category where pid=0 order by id asc");
 
+// 设置前台模版中会用到的SEO标题，描述，分类信息，以及common.css通用样式文件
 fun header_data(data, is_user_admin = FALSE, css)
 	global categories, config;
 	data['head_title'] = data['site_name'] = config['site_name'];
