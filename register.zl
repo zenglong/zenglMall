@@ -11,6 +11,7 @@ else
 endif
 
 class Register
+	// 显示前台用户的注册页面
 	fun show()
 		header_data(&data);
 		querys = rqtGetQuery();
@@ -30,6 +31,7 @@ class Register
 		bltExit();
 	endfun
 
+	// 对前台用户通过注册页面提交过来的用户名，密码以及邮箱进行校验，校验通过时，执行具体的注册操作，也就是向users前台用户表中插入一条用户记录
 	fun doReg()
 		global posts, db;
 		Mysql db;

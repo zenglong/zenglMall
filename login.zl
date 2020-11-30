@@ -10,6 +10,7 @@ else
 endif
 
 class Login
+	// 显示前台用户的登录页面
 	fun show()
 		header_data(&data);
 		querys = rqtGetQuery();
@@ -20,6 +21,7 @@ class Login
 		print bltMustacheFileRender("tpl/login.tpl",data);
 	endfun
 
+	// 对前台用户在登录界面提交过来的用户名和密码进行校验，如果校验通过，就设置前台用户的登录会话，并设置相应的会话Cookie
 	fun checkUserPass()
 		global posts, db;
 		Mysql db;

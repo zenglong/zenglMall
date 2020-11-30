@@ -1,8 +1,10 @@
+// 该脚本用于进入商品支付页面，或者前台用户的会员中心页面时，先判断前台用户是否登录过，如果登录过则可以执行商品支付和进入会员中心的操作，否则就跳转到前台登录页面
 cookies = rqtGetCookie();
 sess_data = sessGetData(bltStr(&cookies['USR_SESSION']));
 if(bltCount(sess_data) == 0 || !sess_data['uid'])
 	rqtSetResponseHeader("HTTP/1.1 302 Moved Temporarily");
 	rqtSetResponseHeader("Location: /login.zl?redirect=" + bltUrlEncode(redirect ? redirect : USER_ADMIN));
+	// 加入Cache-Control和Pragma响应头，防止浏览器和CDN缓存302跳转结果
 	rqtSetResponseHeader("Cache-Control: no-store,no-cache,must-revalidate,post-check=0,pre-check=0");
 	rqtSetResponseHeader("Pragma: no-cache");
 	bltExit();

@@ -1,6 +1,11 @@
+// Mysql数据库类，提供一些和Mysql数据库操作相关的方法
 class Mysql
 	con;
 	error_tpl;
+	/** 
+	 * 当操作数据库发生错误时，直接退出脚本，同时会返回500错误给客户端，所有的500错误对应的具体错误原因都会记录到zenglServer日志中，
+	 * 如果使用了bltFatalErrorCallback模块函数设置过运行时错误回调函数的话，还会调用用户自定义的回调函数来处理错误信息
+	 */
 	fun error(obj, sql='')
 		Mysql obj;
 		data['error'] = mysqlError(obj.con);
@@ -12,6 +17,7 @@ class Mysql
 		bltExit(data['error'] + (sql ? ' sql: ' + sql : ''));
 	endfun
 
+	// 初始化mysql数据库连接，并将mysql连接设置到obj的con成员中
 	fun init(obj, config, error_tpl)
 		Mysql obj;
 		obj.error_tpl = error_tpl;
@@ -25,6 +31,7 @@ class Mysql
 		endif
 	endfun
 
+	// 根据sql语句执行查询操作，返回一条查询记录(返回数组的各成员对应该条查询记录的各个字段)
 	fun fetchOne(obj, sql)
 		Mysql obj;
 		if(mysqlQuery(obj.con, sql))
@@ -38,6 +45,7 @@ class Mysql
 		return result_array;
 	endfun
 
+	// 根据sql语句执行查询操作，返回所有的查询记录(返回数组的每个成员都对应一条查询记录)
 	fun fetchAll(obj, sql)
 		Mysql obj;
 		if(mysqlQuery(obj.con, sql))
@@ -52,11 +60,13 @@ class Mysql
 		return return_array;
 	endfun
 
+	// 将str对应的语句进行mysql转义，让其可以安全的用于sql语句中(通常用于拼接sql语句时，需要执行转义操作)
 	fun Escape(obj, str)
 		Mysql obj;
 		return mysqlRealEscapeString(obj.con, bltStr(str));
 	endfun
 
+	// 将datas数组作为数据库记录(数组中的每个成员都对应记录中的一个字段，成员key对应字段的列名，成员的值对应字段的值)插入到table表中
 	fun Insert(obj, table, datas)
 		Mysql obj;
 		vals = keys = '';
@@ -77,6 +87,8 @@ class Mysql
 		endif
 	endfun
 
+	// 将datas数组作为数据库记录(数组中的每个成员都对应记录中的一个字段，成员key对应字段的列名，成员的值对应字段的值)更新到table表中，
+	// where表示更新条件，即通过sql的where语句来指定哪些数据库记录需要被更新
 	fun Update(obj, table, datas, where = '')
 		Mysql obj;
 		key_vals = '';
@@ -93,6 +105,7 @@ class Mysql
 		endif
 	endfun
 
+	// 执行原始的sql语句，脚本中也可以手动拼接原始的sql语句来执行相关的数据库操作(例如插入，更新之类的语句)
 	fun Exec(obj, sql)
 		Mysql obj;
 		if(mysqlQuery(obj.con, sql))
