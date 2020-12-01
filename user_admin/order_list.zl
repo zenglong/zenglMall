@@ -14,23 +14,28 @@ else
 	print 'invalid act';
 endif
 
+// OrderList类用于前台用户执行和订单相关的操作
 class OrderList
+	// 前台会员中心订单列表页面
 	fun index()
 		global querys, db, sess_data;
 		header_data(&data, TRUE, &css);
 		css[] = 'user_admin/order_list.css?v=20200826';
 		where = " where uid = " + sess_data['uid'];
 		search_oid = bltStr(&querys['search_oid']);
+		// 根据订单号搜索订单列表
 		if(search_oid)
 			where += ' and oid like "%' + Mysql.Escape(db, search_oid) + '%"';
 			data['search_oid'] = search_oid;
 		endif
 		search_name = bltStr(&querys['search_name']);
+		// 根据商品名称搜索搜索订单列表
 		if(search_name)
 			where += ' and name like "%' + Mysql.Escape(db, search_name) + '%"';
 			data['search_name'] = search_name;
 		endif
 		search_status = bltStr(&querys['search_status']);
+		// 根据订单状态搜索订单列表
 		if(search_status)
 			where += ' and status = "' + Mysql.Escape(db, search_status) + '"';
 			data['search_status'] = search_status;
@@ -47,6 +52,7 @@ class OrderList
 		print bltMustacheFileRender("tpl/order_list.tpl", data);
 	endfun
 
+	// 前台会员中心订单详情页面
 	fun view(id)
 		global db, sess_data;
 		header_data(&data, TRUE, &css);
@@ -57,6 +63,7 @@ class OrderList
 		print bltMustacheFileRender("tpl/order_view.tpl", data);
 	endfun
 
+	// 对待收货的订单执行确认收货的操作，也就是将订单的状态设置为已收货状态
 	fun setBuyerConfirm()
 		global db, sess_data;
 		posts = rqtGetBodyAsArray();
@@ -68,6 +75,7 @@ class OrderList
 		if(order_info['status'] != 'WAIT_BUYER_CONFIRM')
 			ajax_return('只能对待收货的订单进行确认收货');
 		endif
+		// 通过将订单在orders表中的数据库记录中的status字段的值设置为BUYER_CONFIRM，从而将订单设置为已收货状态
 		data['status'] = 'BUYER_CONFIRM';
 		data['confirm_time'] = data['update_time'] = bltDate("%Y-%m-%d %H:%M:%S");
 		Mysql.Update(db, 'orders', data, 'id=' + id);

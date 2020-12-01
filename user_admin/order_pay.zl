@@ -12,6 +12,7 @@ querys = rqtGetQuery();
 OrderPay.doPay(bltInt(querys['id']));
 
 class OrderPay
+	// 前台用户通过订单详情页面，对待付款的订单执行继续付款的操作
 	fun doPay(id)
 		global db, sess_data;
 		print '<!Doctype html>';
@@ -21,6 +22,7 @@ class OrderPay
 			exit('订单信息不存在');
 		endif
 		if(order_info['status'] == 'WAIT_BUYER')
+			// 通过GoodsPayBase类的returnDoPayHtml方法，构建支付宝支付相关的form表单信息，并跳转到支付宝的支付页面去完成继续付款的操作
 			print GoodsPayBase.returnDoPayHtml(order_info, FALSE);
 		else
 			exit('订单不是待付款状态');
