@@ -11,6 +11,7 @@ else
 	CategoryAjax.Return('invalid act');
 endif
 
+// 该类用于执行一些和商品分类相关的异步ajax操作，这些ajax操作会以json格式来返回结果
 class CategoryAjax
 	// ajax返回成功或失败
 	fun Return(errmsg = '') // Return首字母大写，防止与关键词return冲突
@@ -21,7 +22,7 @@ class CategoryAjax
 		bltExit();
 	endfun
 
-	// 异步加载分类列表
+	// 异步加载商品分类列表
 	fun list()
 		global querys;
 		db = CategoryBase.initDB();
@@ -29,13 +30,12 @@ class CategoryAjax
 		categories = CategoryBase.getListByPid(db, pid, "id,name,childcnt");
 		for(i=0;bltIterArray(categories,&i,&v);)
 			bltHtmlEscape(&v['name'], TRUE);
-			bltHtmlEscape(&v['description'], TRUE);
 		endfor
 		rqtSetResponseHeader("Content-Type: application/json");
 		print bltJsonEncode(categories);
 	endfun
 
-	// 异步ajax删除某个分类
+	// 异步ajax删除某个商品分类
 	fun delete()
 		global querys;
 		db = CategoryBase.initDB();

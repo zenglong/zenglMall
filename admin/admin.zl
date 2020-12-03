@@ -1,5 +1,6 @@
 inc 'common.zl';
 
+// 显示后台管理的概览页面
 csses[] = 'admin.css';
 data['csses'] = csses;
 data['title'] = '后台管理';
@@ -11,6 +12,8 @@ data['mysql_client_info'] = mysqlGetClientInfo();
 Mysql db;
 db = bltArray();
 Mysql.init(db, config, "tpl/error.tpl");
+// 在概览页面会显示出mysql的版本号，zenglServer的版本号，
+// zenglServer所嵌入的zengl语言的版本号，以及zenglMall的版本号信息
 data['mysql_server_version'] = mysqlGetServerVersion(db.con);
 data['zenglServerVersion'] = bltGetZenglServerVersion();
 data['zenglVersion'] = bltGetZenglVersion();

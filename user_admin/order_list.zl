@@ -29,7 +29,7 @@ class OrderList
 			data['search_oid'] = search_oid;
 		endif
 		search_name = bltStr(&querys['search_name']);
-		// 根据商品名称搜索搜索订单列表
+		// 根据商品名称搜索订单列表
 		if(search_name)
 			where += ' and name like "%' + Mysql.Escape(db, search_name) + '%"';
 			data['search_name'] = search_name;

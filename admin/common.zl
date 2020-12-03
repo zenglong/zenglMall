@@ -1,3 +1,6 @@
+// 该脚本是后台管理页面脚本都会加载的一个公共脚本，该脚本会执行一些公共的初始化操作，
+// 例如加载config.zl配置脚本，加载mysql.zl数据类脚本，加载fatal_error.zl设置运行时错误回调函数的脚本，
+// 以及判断当前用户是否登录过后台，如果没有登录过则跳转到后台登录页面，还定义了init_db之类的通用脚本函数
 use builtin, request, mysql, session;
 def TRUE 1;
 def FALSE 0;

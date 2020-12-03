@@ -13,6 +13,7 @@ else
 	print 'invalid act';
 endif
 
+// 该类用于执行和商品相关的操作(例如显示后台商品列表，添加和编辑商品等)
 class Goods
 	// 获取分类列表，或者某个分类的信息
 	fun getCategory(db, data, posts = 0)

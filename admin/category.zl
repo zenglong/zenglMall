@@ -13,8 +13,9 @@ else
 	print 'invalid act';
 endif
 
+// 该类用于在后台管理页面，执行和商品分类相关的操作(例如显示商品分类列表，添加及编辑商品分类的操作)
 class Category
-	// 显示分类列表
+	// 显示商品分类列表
 	fun list()
 		global querys;
 		pid = querys['pid'] ? bltInt(querys['pid']) : 0;
@@ -34,7 +35,7 @@ class Category
 		print bltMustacheFileRender("tpl/category_list.tpl", data);
 	endfun
 
-	// 显示添加分类页面
+	// 显示添加商品分类或编辑商品分类的页面
 	fun showAdd(db, data, posts = 0, isadd = TRUE)
 		csses[] = 'category_add.css';
 		data['csses'] = csses;
@@ -50,7 +51,7 @@ class Category
 		print bltMustacheFileRender("tpl/category_add.tpl",data);
 	endfun
 
-	// 校验数据
+	// 对添加或编辑商品分类时，提交过来的数据进行校验
 	fun validate(db, data, posts, isadd = TRUE)
 		bltStr(&posts['name'], TRUE);
 		bltStr(&posts['description'], TRUE);
@@ -69,7 +70,7 @@ class Category
 		endif
 	endfun
 
-	// 添加分类
+	// 添加商品分类
 	fun add()
 		posts = rqtGetBodyAsArray();
 		db = CategoryBase.initDB();
@@ -83,7 +84,7 @@ class Category
 		Category.showAdd(db, data);
 	endfun
 
-	// 编辑分类
+	// 编辑商品分类
 	fun edit()
 		global querys;
 		posts = rqtGetBodyAsArray();

@@ -8,6 +8,7 @@ else
 	ajax_return('invalid act');
 endif
 
+// 该类用于执行和商品相关的异步操作
 class GoodsAjax
 	// 删除商品
 	fun delete()

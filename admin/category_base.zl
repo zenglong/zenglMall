@@ -1,12 +1,13 @@
+// 该类提供了一些和商品分类相关的通用方法
 class CategoryBase
-	// 根据pid获取分类列表
+	// 根据pid获取商品分类列表
 	fun getListByPid(db, pid, field="")
 		field = field ? field : "id,name,description,pid,childcnt,type";
 		where = pid >= 0 ? ' where pid='+pid : '';
 		return Mysql.fetchAll(db, "select "+field+" from category "+where + " order by id asc");
 	endfun
 
-	// 根据分类id获取分类信息
+	// 根据分类id获取商品分类信息
 	fun getCateInfo(db, id, field="")
 		field = field ? field : "*";
 		return Mysql.fetchOne(db, "select "+field+" from category where id="+id);
@@ -20,7 +21,7 @@ class CategoryBase
 		return db;
 	endfun
 
-	// 更新某个分类的子分类数量
+	// 更新某个商品分类的子分类数量
 	fun updateChildCnt(db, pid)
 		if(pid > 0)
 			ret = Mysql.fetchOne(db, "select count(1) as childcnt from category where pid="+pid);
