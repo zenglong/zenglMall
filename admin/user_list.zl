@@ -11,7 +11,9 @@ else
 	print 'invalid act';
 endif
 
+// 该类用于在后台管理页面，执行和前台注册用户相关的操作(例如显示前台用户列表，查看某个前台用户的详细信息等)
 class User
+	// 在管理后台，显示前台用户列表页面
 	fun index()
 		global querys;
 		db = init_db();
@@ -44,6 +46,7 @@ class User
 		print bltMustacheFileRender("tpl/user_list.tpl", data);
 	endfun
 
+	// 根据用户ID显示前台用户详情页面
 	fun view(id)
 		db = init_db();
 		data['user_info'] = Mysql.fetchOne(db, "select * from users where id = " + id);

@@ -11,6 +11,7 @@ else
 	print 'invalid act';
 endif
 
+// 该类用于在后台管理页面，执行和图片上传相关的操作
 class Upload
 	// 检测上传图片的大小
 	fun checkImageSize(exit = TRUE)

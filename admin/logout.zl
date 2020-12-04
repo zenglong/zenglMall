@@ -1,13 +1,18 @@
 use builtin, request, session;
 
+// 退出后台管理页面，也就是执行登出操作
 cookies = rqtGetCookie();
 sess_data = sessGetData(bltStr(&cookies['MALL_ADM_SESSION']));
+// 删除后台登录相关的会话信息
 if(bltCount(sess_data) > 0)
 	sessDelete(cookies['MALL_ADM_SESSION']);
 endif
+// 退出后，默认跳转到后台登录页面
 rqtSetResponseHeader("HTTP/1.1 302 Moved Temporarily");
 rqtSetResponseHeader("Location: login.zl");
+// 设置Cache-Control和Pragma响应头来防止CDN和浏览器缓存302跳转
 rqtSetResponseHeader("Cache-Control: no-store,no-cache,must-revalidate,post-check=0,pre-check=0");
 rqtSetResponseHeader("Pragma: no-cache");
+// 通过Set-Cookie响应头，将浏览器中和登录相关的Cookie信息给移除掉
 rqtSetResponseHeader("Set-Cookie: MALL_ADM_SESSION=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;");
 
