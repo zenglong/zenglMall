@@ -69,6 +69,18 @@ if(mysqlQuery(con, "CREATE TABLE goods(
 	finish_with_error(con);
 endif
 
+// 创建商品库存表
+if(mysqlQuery(con, "CREATE TABLE goods_store(
+	id int NOT NULL AUTO_INCREMENT, 
+	gid int NOT NULL DEFAULT '0' COMMENT '商品ID',
+	num int NOT NULL DEFAULT '0' COMMENT '商品库存',
+	`freez` int NOT NULL DEFAULT '0' COMMENT '商品冻结库存',
+	PRIMARY KEY (id),
+	KEY `gid` (`gid`)
+	) ENGINE=InnoDB DEFAULT CHARSET utf8 COLLATE utf8_general_ci COMMENT='商品库存表'"))
+	finish_with_error(con);
+endif
+
 // 创建友情链接表
 if(mysqlQuery(con, "CREATE TABLE friendly_link(
 	id int NOT NULL AUTO_INCREMENT, 
@@ -121,6 +133,7 @@ if(mysqlQuery(con, "CREATE TABLE orders (
 	seller_remark text NOT NULL COMMENT '商家备注',
 	`create_time` timestamp NULL DEFAULT NULL COMMENT '创建时间',
  	`update_time` timestamp NULL DEFAULT NULL COMMENT '更新时间',
+	`pay_time` timestamp NULL DEFAULT NULL COMMENT '订单支付时间',
 	`send_time` timestamp NULL DEFAULT NULL COMMENT '设置为待收货的时间',
 	`confirm_time` timestamp NULL DEFAULT NULL COMMENT '确认收货的时间',
 	PRIMARY KEY (id)

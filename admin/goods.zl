@@ -46,7 +46,9 @@ class Goods
 		total = bltInt(tmp['cnt']);
 		page = get_page(10, total, 10);
 		data['page'] = page;
-		data['items'] = Mysql.fetchAll(db, "select g.id,g.name,thumbnail,uid,price,market_price,created_at,updated_at,c.name as cname from goods as g left join category as c on c.id=g.cid "+ where +
+		data['items'] = Mysql.fetchAll(db, "select g.id,g.name,thumbnail,uid,price,market_price,created_at,updated_at, gs.num as store_num, gs.freez, c.name as cname from goods as g " + 
+							" left join goods_store as gs on gs.gid=g.id " + 
+							" left join category as c on c.id=g.cid "+ where +
 							" order by id desc limit " + page['offset'] + "," + page['limit']);
 		data['datas'] = bltJsonEncode(data);
 		print bltMustacheFileRender("tpl/goods_list.tpl", data);
@@ -76,25 +78,34 @@ class Goods
 			bltStr(&posts['description'], TRUE);
 			bltStr(&posts['content'], TRUE);
 			bltInt(&posts['cid'], TRUE);
+			bltInt(&posts['store_num'], TRUE);
 			bltFloat(&posts['price'], TRUE);
 			bltFloat(&posts['market_price'], TRUE);
 		endif
 	endfun
 
 	// 校验数据
-	fun validate(db, posts, isadd = TRUE)
+	fun validate(db, posts, isadd = TRUE, freez = 0)
 		if(!posts['name'])
-			data['err_msg'] = '商品名称不能为空';
+			err_msg = '商品名称不能为空';
 		elif(!posts['price'] || !posts['market_price'])
-			data['price'] = '必须填写商品价格和市场价格';
+			err_msg = '必须填写商品价格和市场价格';
+		elif(posts['store_num'] < 0)
+			err_msg = '商品库存不能小于0';
 		elif(!posts['content'])
-			data['err_msg'] = '商品详情不能为空';
+			err_msg = '商品详情不能为空';
 		elif(!posts['cid'])
-			data['err_msg'] = '请选择有效的分类';
-		elif(!isadd && !posts['id'])
-			data['err_msg'] = '无效的商品ID';
+			err_msg = '请选择有效的分类';
+		elif(!isadd)
+			if(!posts['id'])
+				err_msg = '无效的商品ID';
+			elif(posts['store_num'] < freez)
+				err_msg = '商品库存不能小于冻结库存(待付款订单会产生冻结库存)';
+				posts['freez'] = freez;
+			endif
 		endif
-		if(data['err_msg'])
+		if(err_msg)
+			data['err_msg'] = err_msg;
 			data['posts'] = posts;
 			if(posts['id'])
 				data['id'] = posts['id'];
@@ -112,11 +123,18 @@ class Goods
 		Goods.preProcessData(posts);
 		if(posts['submit'])
 			Goods.validate(db, posts);
-			bltUnset(&posts['submit']);
+			store_num = posts['store_num'];
+			bltUnset(&posts['submit'], &posts['store_num']);
 			posts['created_at'] = bltDate('%Y-%m-%d %H:%M:%S');
 			posts['updated_at'] = posts['created_at'];
 			posts['uid'] = sess_data['uid'];
+			Mysql.StartTransaction(db);
 			Mysql.Insert(db, 'goods', posts);
+			result = Mysql.fetchOne(db, "SELECT LAST_INSERT_ID() as last_id");
+			store['gid'] = result['last_id'];
+			store['num'] = store_num;
+			Mysql.Insert(db, 'goods_store', store);
+			Mysql.Commit(db);
 			data['success_msg'] = '添加商品成功';
 		endif
 		Goods.showAdd(db, data);
@@ -130,15 +148,20 @@ class Goods
 		Goods.preProcessData(posts);
 		if(posts['submit'])
 			id = bltInt(posts['id']);
-			Goods.validate(db, posts, FALSE);
-			bltUnset(&posts['submit']);
+			Mysql.StartTransaction(db);
+			store = Mysql.fetchOne(db, "select gid,num,freez from goods_store where gid = '" + id + "' FOR UPDATE");
+			Goods.validate(db, posts, FALSE, store['freez']);
+			store['num'] = posts['store_num'];
+			bltUnset(&posts['submit'], &posts['store_num']);
 			posts['updated_at'] = bltDate('%Y-%m-%d %H:%M:%S');
 			Mysql.Update(db, 'goods', posts, 'id=' + id);
+			Mysql.Update(db, 'goods_store', store, 'gid=' + id);
+			Mysql.Commit(db);
 			data['success_msg'] = '编辑商品成功';
 		else
 			id = bltInt(querys['id']);
 		endif
-		data['posts'] = Mysql.fetchOne(db, "select * from goods where id='"+id+"'");
+		data['posts'] = Mysql.fetchOne(db, "select g.*, gs.num as store_num, gs.freez from goods g inner join goods_store gs on g.id = gs.gid where g.id='"+id+"'");
 		if(!bltCount(data['posts']))
 			data['err_msg'] = '无效的商品ID';
 			id = 0;

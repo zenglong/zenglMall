@@ -22,6 +22,11 @@
 		<input type="text" class="form-control" name="market_price" :value="datas.posts ? datas.posts.market_price : ''" v-once id="name" placeholder="商品市场价格">
 	</div>
 	<div class="form-group">
+		<label for="store-num">商品库存:</label>
+		<input type="text" class="form-control" name="store_num" :value="datas.posts ? datas.posts.store_num : ''" v-once id="store-num" placeholder="商品库存">
+		<span v-if="datas.posts && datas.posts.freez > 0" style="color:red">冻结库存: ({{datas.posts.freez}})</span>
+	</div>
+	<div class="form-group">
 		<label for="thumbnail-upload">商品缩略图:</label>
 		<input id="thumbnail-upload" type="file" name="thumbnail_up" data-url="upload.zl?act=thumbImg">
 		<input id="thumbnail-hidden" type="text" name="thumbnail" v-model="thumbnail" class="form-control"><br/>

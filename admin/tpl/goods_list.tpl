@@ -33,10 +33,10 @@
 			<th>id</th>
 			<th>缩略图</th>
 			<th>商品名</th>
-			<th>商品价格</th>
-			<th>市场价</th>
-			<th>用户id</th>
-			<th>所属分类</th>
+			<th width="5%">价格</th>
+			<th width="5%">库存</th>
+			<th width="5%">用户id</th>
+			<th width="5%">分类</th>
 			<th>创建时间</th>
 			<th>更新时间</th>
 			<th>操作</th>
@@ -48,8 +48,8 @@
 				<td>{{item.id}}</td>
 				<td><img v-if="item.thumbnail" :src="item.thumbnail" width="130" height="130" /></td>
 				<td>{{item.name}}</td>
-				<td>{{item.price}}</td>
-				<td>{{item.market_price}}</td>
+				<td>{{item.price}}<br/><span title="市场价">({{item.market_price}})</span></td>
+				<td>{{item.store_num}}<br/><span v-if="item.freez > 0" style="color:red" title="冻结库存">({{item.freez}})</span></td>
 				<td>{{item.uid}}</td>
 				<td>{{item.cname}}</td>
 				<td>{{item.created_at}}</td>

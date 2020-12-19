@@ -2,6 +2,7 @@
 class Mysql
 	con;
 	error_tpl;
+	is_transaction;
 	/** 
 	 * 当操作数据库发生错误时，直接退出脚本，同时会返回500错误给客户端，所有的500错误对应的具体错误原因都会记录到zenglServer日志中，
 	 * 如果使用了bltFatalErrorCallback模块函数设置过运行时错误回调函数的话，还会调用用户自定义的回调函数来处理错误信息
@@ -9,6 +10,9 @@ class Mysql
 	fun error(obj, sql='')
 		Mysql obj;
 		data['error'] = mysqlError(obj.con);
+		if(obj.is_transaction)
+			Mysql.Rollback(obj);
+		endif
 		mysqlClose(obj.con);
 		if(obj.error_tpl)
 			data['title'] = 'Mysql错误';
@@ -20,6 +24,7 @@ class Mysql
 	// 初始化mysql数据库连接，并将mysql连接设置到obj的con成员中
 	fun init(obj, config, error_tpl)
 		Mysql obj;
+		obj.is_transaction = FALSE;
 		obj.error_tpl = error_tpl;
 		obj.con = mysqlInit();
 		if(!mysqlRealConnect(obj.con, config['db_host'], config['db_user'], 
@@ -111,6 +116,24 @@ class Mysql
 		if(mysqlQuery(obj.con, sql))
 			Mysql.error(obj);
 		endif
+	endfun
+
+	fun StartTransaction(obj)
+		Mysql obj;
+		Mysql.Exec(obj, "START TRANSACTION");
+		obj.is_transaction = TRUE;
+	endfun
+
+	fun Commit(obj)
+		Mysql obj;
+		Mysql.Exec(obj, "COMMIT");
+		obj.is_transaction = FALSE;
+	endfun
+
+	fun Rollback(obj)
+		Mysql obj;
+		Mysql.Exec(obj, "ROLLBACK");
+		obj.is_transaction = FALSE;
 	endfun
 endclass
 
