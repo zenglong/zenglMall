@@ -2,7 +2,11 @@ inc 'common.zl';
 use pcre,openssl;
 
 querys = rqtGetQuery();
-redirect = 'goods_pay.zl?id=' + querys['id'];
+buy_num = bltInt(querys['num']);
+if(buy_num <= 0)
+	buy_num = 1;
+endif
+redirect = 'goods_pay.zl?id=' + querys['id'] + '&num=' + buy_num;
 inc 'user_sess.zl';
 inc 'alipay_func.zl';
 inc 'goods_pay_base.zl';
@@ -21,7 +25,7 @@ endif
 class GoodsPay
 	// 显示商品相关的确认支付页面
 	fun showPay(errmsg = '', posts_data = '')
-		global querys, db, sess_data;
+		global querys, db, sess_data, buy_num;
 		header_data(&data);
 		data['csses'] = bltArray('show_pay.css?v=20200820');
 		id = bltInt(querys['id']);
@@ -30,6 +34,8 @@ class GoodsPay
 		data['goods_info'] = goods_info;
 		data['posts_data'] = posts_data;
 		data['user_info'] = user_info;
+		data['buy_num'] = buy_num;
+		data['pay_money'] = buy_num * bltFloat(goods_info['price']);
 		data['errmsg'] = errmsg;
 		data['datas'] = bltJsonEncode(data);
 		print bltMustacheFileRender("/tpl/show_pay.tpl", data);
@@ -40,7 +46,7 @@ class GoodsPay
 
 	// 执行商品支付操作，包括下单操作(也就是在订单表中添加订单记录)
 	fun doPay()
-		global querys, db, br, sess_data;
+		global querys, db, br, sess_data, buy_num;
 		posts_data = rqtGetBodyAsArray();
 
 		for(i=0;bltIterArray(posts_data,&i,&k,&v);)
@@ -50,10 +56,17 @@ class GoodsPay
 		if(!posts_data['phone'] || !posts_data['true_name'] || !posts_data['address'])
 			GoodsPay.showPay('收货人姓名，电话，地址都不能为空!', posts_data);
 		endif
+		GoodsPay.updateUserInfo(posts_data['phone'], posts_data['true_name'], posts_data['address']);
 
+		id = bltInt(querys['id']);
+		Mysql.StartTransaction(db);
+		store = Mysql.fetchOne(db, "select gid,num,freez from goods_store where gid = '" + id + "' FOR UPDATE");
+		available_num = store['num'] - store['freez'];
+		if(buy_num > available_num)
+			GoodsPay.showPay('库存不足，当前可用库存：' + available_num, posts_data);
+		endif
 		print '<!Doctype html>';
 		print '<html><head><meta http-equiv="content-type" content="text/html;charset=utf-8" /></head><body>';
-		id = bltInt(querys['id']);
 		goods_info = Mysql.fetchOne(db, "select id,name,thumbnail,price,description from goods where id=" + id);
 		if(!bltCount(goods_info))
 			exit('商品信息不存在');
@@ -67,8 +80,8 @@ class GoodsPay
 		order_info['description'] = goods_info['description'];
 		order_info['price'] = goods_info['price'];
 		order_info['thumbnail'] = goods_info['thumbnail'];
-		order_info['num'] = 1;
-		order_info['amount'] = order_info['price'];
+		order_info['num'] = buy_num;
+		order_info['amount'] = buy_num * bltFloat(goods_info['price']);
 		order_info['phone'] = posts_data['phone'];          // 设置收货人电话
 		order_info['true_name'] = posts_data['true_name'];  // 设置收货人姓名
 		order_info['address'] = posts_data['address'];      // 设置收货地址
@@ -76,29 +89,41 @@ class GoodsPay
 		order_info['seller_remark'] = '';
 		order_info['status'] = 'WAIT_BUYER';
 
-		// 获取支付宝支付表单，通过向支付宝网关提交form表单，来跳转到支付宝网站(跳转到支付宝网站后，输入帐号密码，或者用APP扫码方式来完成支付操作)
-		submit_html = GoodsPayBase.returnDoPayHtml(order_info);
-
 		Mysql.Insert(db, 'orders', order_info);
+		result = Mysql.fetchOne(db, "SELECT LAST_INSERT_ID() as last_id");
+		order_insert_id = result['last_id'];
 		print_msg('插入orders订单表成功'+ br);
+		store['freez'] += buy_num;
+		Mysql.Update(db, 'goods_store', store, 'gid=' + id);
+		print_msg('更新goods_store商品库存表成功'+ br);
+		Mysql.Commit(db);
 
+		order_db_info = Mysql.fetchOne(db, "select * from orders where id = " + order_insert_id);
+		// 获取支付宝支付表单，通过向支付宝网关提交form表单，来跳转到支付宝网站(跳转到支付宝网站后，输入帐号密码，或者用APP扫码方式来完成支付操作)
+		submit_html = GoodsPayBase.returnDoPayHtml(order_db_info);
+
+		print submit_html;
+	endfun
+
+	fun updateUserInfo(phone, true_name, address)
+		global br, db, sess_data;
 		user_info = Mysql.fetchOne(db, "select id,phone,true_name,address from users where id=" + sess_data['uid']);
 		if(!user_info['phone'] || !user_info['true_name'] || !user_info['address'])
 			user_info['update_time'] = bltDate('%Y-%m-%d %H:%M:%S');
 		endif
 		if(!user_info['phone'])
-			user_info['phone'] = posts_data['phone'];
+			user_info['phone'] = phone;
 		endif
 		if(!user_info['true_name'])
-			user_info['true_name'] = posts_data['true_name'];
+			user_info['true_name'] = true_name;
 		endif
 		if(!user_info['address'])
-			user_info['address'] = posts_data['address'];
+			user_info['address'] = address;
 		endif
 		// 如果前台用户之前没有设置过电话，姓名，收货地址信息的话，就将确认支付页面传递过来的信息设置到users前台用户表的该用户记录中
-		Mysql.Update(db, 'users', user_info, 'id=' + user_info['id']);
+		if(user_info['update_time'])
+			Mysql.Update(db, 'users', user_info, 'id=' + user_info['id']);
+		endif
 		print_msg('更新用户表成功'+ br);
-
-		print submit_html;
 	endfun
 endclass

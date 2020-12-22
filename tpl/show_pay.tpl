@@ -9,7 +9,7 @@
 				<strong class="err-title">{{ error_title }}</strong>
 				<span class="err-content">{{ error_content }}</span>
 			</div>
-			<form :action="'?act=dopay' + '&amp;id=' + goods_info.id" method="post" id="pay_form">
+			<form :action="'?act=dopay' + '&amp;id=' + goods_info.id + '&amp;num=' + buy_num" method="post" id="pay_form">
 				<div class="form-group">
 					<label>当前用户: {{ user_info.username }}</label>
 				</div>
@@ -46,8 +46,8 @@
 								<td><img v-if="goods_info.thumbnail" :src="goods_info.thumbnail" width="210" height="210" /></td>
 								<td>{{ goods_info.name }}</td>
 								<td>{{ goods_info.price }}</td>
-								<td>1</td>
-								<td>{{ goods_info.price }}</td>
+								<td>{{ buy_num }}</td>
+								<td>{{ pay_money }}</td>
 							</tr>
 						</tbody>
 					</table>
@@ -74,6 +74,8 @@
 			error_content: datas.errmsg,
 			goods_info: datas.goods_info,
 			user_info: datas.user_info,
+			buy_num: datas.buy_num,
+			pay_money: datas.pay_money.toFixed(2),
 			posts_data: posts_data
 		},
 		methods: {

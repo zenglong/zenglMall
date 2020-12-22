@@ -21,8 +21,9 @@
 			<div class="goods-name">{{ goods_info.name }}</div>
 			<div class="goods-price">¥{{ goods_info.price }}</div>
 			<div class="goods-market-price">市场价：{{ goods_info.market_price }}</div>
+			<div class="goods-store-num"><input type="number" v-model="buy_num" /> 库存：{{ goods_info.store_num -  goods_info.freez }}</div>
 			<div class="goods-pay">
-				<a :href="'goods_pay.zl?id=' + goods_info.id" id="goods-pay-btn" class="btn btn-danger pull-center" role="button">立即购买</a>
+				<button @click="pay_click" id="goods-pay-btn" class="btn btn-danger pull-center" role="button">立即购买</a>
 			</div>
 		</div>
 		<div class="clearfloat"></div>
@@ -61,7 +62,22 @@
 			goods_info: datas.goods_info,
 			cate_info: datas.cate_info,
 			sub_cate_list: datas.sub_cate_list,
-			goods_list: datas.goods_list
+			goods_list: datas.goods_list,
+			buy_num: 1
+		},
+		methods: {
+			pay_click: function() {
+				var store_num = this.goods_info.store_num -  this.goods_info.freez;
+				if(this.buy_num > store_num) {
+					alert("购买数量不能超过库存，当前库存：" + store_num);
+					return false;
+				}
+				else if(this.buy_num <= 0) {
+					alert("购买数量必须大于0");
+					return false;
+				}
+				window.location = 'goods_pay.zl?id=' + this.goods_info.id + '&num=' + this.buy_num;
+			}
 		}
 	});
 	if(datas.cate_info['pid'] == 0)

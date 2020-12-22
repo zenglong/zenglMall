@@ -12,7 +12,7 @@ class Goods
 		data['csses'] = bltArray('goods.css?v=20200816');
 		id = bltInt(querys['id']);
 		// 根据商品ID，获取商品的名称，价格，缩略图，商品的详细介绍等信息
-		goods_info = Mysql.fetchOne(db, "select id,name,thumbnail,price,market_price,keywords,description,content,cid from goods where id=" + id);
+		goods_info = Mysql.fetchOne(db, "select g.id,g.name,g.thumbnail,g.price,g.market_price,g.keywords,g.description,g.content,g.cid,gs.num as store_num,gs.freez from goods g left join goods_store gs on gs.gid = g.id where g.id=" + id);
 		// 获取当前商品所属的分类信息
 		cate_info = Mysql.fetchOne(db, "select id,name,pid from category where id=" + goods_info['cid']);
 		data['head_title'] = goods_info['name'] + ' - ' + data['site_name'];
