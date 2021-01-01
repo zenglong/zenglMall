@@ -33,15 +33,13 @@ if(ret)
 	order_info = Mysql.fetchOne(db, "select id,oid,status,tid,num,gid from orders where oid=" + sort_body_arr['out_trade_no']);
 	if(sort_array['trade_status'] == 'TRADE_SUCCESS' && order_info['status'] == 'WAIT_BUYER')
 		Mysql.StartTransaction(db);
-		store = Mysql.fetchOne(db, "select gid,num,freez from goods_store where gid = '" + order_info['gid'] + "' FOR UPDATE");
+		store = Mysql.fetchOne(db, "select gid,num from goods_store where gid = '" + order_info['gid'] + "' FOR UPDATE");
 		order_info['status'] = 'WAIT_SELLER_SEND';
 		order_info['tid'] = sort_body_arr['trade_no'];
-		order_info['update_time'] = bltDate('%Y-%m-%d %H:%M:%S');
+		order_info['update_time'] = order_info['pay_time'] = bltDate('%Y-%m-%d %H:%M:%S');
 		Mysql.Update(db, 'orders', order_info, 'id=' + order_info['id']);
 		store['num'] -= order_info['num'];
-		store['freez'] -= order_info['num'];
 		store['num'] = store['num'] < 0 ? 0 : store['num'];
-		store['freez'] = store['freez'] < 0 ? 0 : store['freez'];
 		Mysql.Update(db, 'goods_store', store, 'gid=' + order_info['gid']);
 		Mysql.Commit(db);
 	endif

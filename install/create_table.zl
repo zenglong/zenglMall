@@ -74,7 +74,6 @@ if(mysqlQuery(con, "CREATE TABLE goods_store(
 	id int NOT NULL AUTO_INCREMENT, 
 	gid int NOT NULL DEFAULT '0' COMMENT '商品ID',
 	num int NOT NULL DEFAULT '0' COMMENT '商品库存',
-	`freez` int NOT NULL DEFAULT '0' COMMENT '商品冻结库存',
 	PRIMARY KEY (id),
 	KEY `gid` (`gid`)
 	) ENGINE=InnoDB DEFAULT CHARSET utf8 COLLATE utf8_general_ci COMMENT='商品库存表'"))

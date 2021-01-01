@@ -75,7 +75,7 @@
 			goods_info: datas.goods_info,
 			user_info: datas.user_info,
 			buy_num: datas.buy_num,
-			pay_money: datas.pay_money.toFixed(2),
+			pay_money: datas.pay_money,
 			posts_data: posts_data
 		},
 		methods: {

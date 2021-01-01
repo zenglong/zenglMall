@@ -53,6 +53,10 @@
 		<label>订单更新时间：</label>
 		<span>{{order_info.update_time}}</span>
 	</div>
+	<div class="form-group" v-if="order_info.pay_time">
+		<label>订单支付时间：</label>
+		<span>{{order_info.pay_time}}</span>
+	</div>
 	<div class="form-group" v-if="order_info.send_time">
 		<label>订单设置成待收货状态的时间：</label>
 		<span>{{order_info.send_time}}</span>

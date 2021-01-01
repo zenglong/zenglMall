@@ -21,7 +21,7 @@
 			<div class="goods-name">{{ goods_info.name }}</div>
 			<div class="goods-price">¥{{ goods_info.price }}</div>
 			<div class="goods-market-price">市场价：{{ goods_info.market_price }}</div>
-			<div class="goods-store-num"><input type="number" v-model="buy_num" /> 库存：{{ goods_info.store_num -  goods_info.freez }}</div>
+			<div class="goods-store-num"><input type="number" v-model="buy_num" /> 库存：{{ goods_info.store_num }}</div>
 			<div class="goods-pay">
 				<button @click="pay_click" id="goods-pay-btn" class="btn btn-danger pull-center" role="button">立即购买</a>
 			</div>
@@ -67,7 +67,7 @@
 		},
 		methods: {
 			pay_click: function() {
-				var store_num = this.goods_info.store_num -  this.goods_info.freez;
+				var store_num = this.goods_info.store_num;
 				if(this.buy_num > store_num) {
 					alert("购买数量不能超过库存，当前库存：" + store_num);
 					return false;

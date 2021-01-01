@@ -35,7 +35,7 @@ class GoodsPay
 		data['posts_data'] = posts_data;
 		data['user_info'] = user_info;
 		data['buy_num'] = buy_num;
-		data['pay_money'] = buy_num * bltFloat(goods_info['price']);
+		data['pay_money'] = bltStr(buy_num * bltFloat(goods_info['price']), '%.2f');
 		data['errmsg'] = errmsg;
 		data['datas'] = bltJsonEncode(data);
 		print bltMustacheFileRender("/tpl/show_pay.tpl", data);
@@ -59,9 +59,8 @@ class GoodsPay
 		GoodsPay.updateUserInfo(posts_data['phone'], posts_data['true_name'], posts_data['address']);
 
 		id = bltInt(querys['id']);
-		Mysql.StartTransaction(db);
-		store = Mysql.fetchOne(db, "select gid,num,freez from goods_store where gid = '" + id + "' FOR UPDATE");
-		available_num = store['num'] - store['freez'];
+		store = Mysql.fetchOne(db, "select gid,num from goods_store where gid = '" + id + "'");
+		available_num = store['num'];
 		if(buy_num > available_num)
 			GoodsPay.showPay('库存不足，当前可用库存：' + available_num, posts_data);
 		endif
@@ -81,7 +80,7 @@ class GoodsPay
 		order_info['price'] = goods_info['price'];
 		order_info['thumbnail'] = goods_info['thumbnail'];
 		order_info['num'] = buy_num;
-		order_info['amount'] = buy_num * bltFloat(goods_info['price']);
+		order_info['amount'] = bltStr(buy_num * bltFloat(goods_info['price']), '%.2f');
 		order_info['phone'] = posts_data['phone'];          // 设置收货人电话
 		order_info['true_name'] = posts_data['true_name'];  // 设置收货人姓名
 		order_info['address'] = posts_data['address'];      // 设置收货地址
@@ -90,17 +89,10 @@ class GoodsPay
 		order_info['status'] = 'WAIT_BUYER';
 
 		Mysql.Insert(db, 'orders', order_info);
-		result = Mysql.fetchOne(db, "SELECT LAST_INSERT_ID() as last_id");
-		order_insert_id = result['last_id'];
 		print_msg('插入orders订单表成功'+ br);
-		store['freez'] += buy_num;
-		Mysql.Update(db, 'goods_store', store, 'gid=' + id);
-		print_msg('更新goods_store商品库存表成功'+ br);
-		Mysql.Commit(db);
 
-		order_db_info = Mysql.fetchOne(db, "select * from orders where id = " + order_insert_id);
 		// 获取支付宝支付表单，通过向支付宝网关提交form表单，来跳转到支付宝网站(跳转到支付宝网站后，输入帐号密码，或者用APP扫码方式来完成支付操作)
-		submit_html = GoodsPayBase.returnDoPayHtml(order_db_info);
+		submit_html = GoodsPayBase.returnDoPayHtml(order_info);
 
 		print submit_html;
 	endfun

@@ -4,6 +4,14 @@
 use builtin, request, mysql, session;
 def TRUE 1;
 def FALSE 0;
+
+zls_version = bltGetZenglServerVersion();
+zls_min_version = 'v0.24.0';
+if(bltVersionCompare(zls_version[0] + '.' + zls_version[1] + '.' + zls_version[2], zls_min_version) < 0)
+	print 'zenglServer version < ' + zls_min_version;
+	bltExit();
+endif
+
 inc '../config.zl';
 inc '../mysql.zl';
 inc '../fatal_error.zl';

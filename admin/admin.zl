@@ -15,7 +15,7 @@ Mysql.init(db, config, "tpl/error.tpl");
 // 在概览页面会显示出mysql的版本号，zenglServer的版本号，
 // zenglServer所嵌入的zengl语言的版本号，以及zenglMall的版本号信息
 data['mysql_server_version'] = mysqlGetServerVersion(db.con);
-data['zenglServerVersion'] = bltGetZenglServerVersion();
+data['zenglServerVersion'] = zls_version;
 data['zenglVersion'] = bltGetZenglVersion();
 data['mallVersion'] = config['version'];
 data['cur_menu'] = 'admin.zl';

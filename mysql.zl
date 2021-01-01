@@ -135,5 +135,10 @@ class Mysql
 		Mysql.Exec(obj, "ROLLBACK");
 		obj.is_transaction = FALSE;
 	endfun
+
+	fun AffectedRows(obj)
+		Mysql obj;
+		return mysqlAffectedRows(obj.con);
+	endfun
 endclass
 

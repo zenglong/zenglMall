@@ -1,0 +1,24 @@
+inc 'common.zl';
+
+querys = rqtGetQuery();
+
+close_day = bltInt(querys['close_day']);
+close_day = close_day < 5 ? 5 : close_day;
+
+confirm_day = bltInt(querys['confirm_day']);
+confirm_day = confirm_day < 10 ? 10 : confirm_day;
+
+print 'time: ' + bltDate("%Y-%m-%d %H:%M:%S");
+print 'close_day: ' + close_day;
+print 'confirm_day: ' + confirm_day;
+
+data['status'] = 'CLOSE';
+data['update_time'] = bltDate("%Y-%m-%d %H:%M:%S");
+Mysql.Update(db, 'orders', data, "(`status` = 'WAIT_BUYER') AND (`create_time` < (NOW() - INTERVAL " + close_day + " DAY))");
+print "update table `orders` to close WAIT_BUYER order, affected rows: " + Mysql.AffectedRows(db);
+
+data['status'] = 'BUYER_CONFIRM';
+data['confirm_time'] = data['update_time'] = bltDate("%Y-%m-%d %H:%M:%S");
+Mysql.Update(db, 'orders', data, "(`status` = 'WAIT_BUYER_CONFIRM') AND (`send_time` < (NOW() - INTERVAL " + confirm_day + " DAY))");
+print "update table `orders` to confirm WAIT_BUYER_CONFIRM order, affected rows: " + Mysql.AffectedRows(db);
+print '----------------------------------- ';
