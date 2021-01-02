@@ -22,6 +22,10 @@ class OrderPay
 			exit('订单信息不存在');
 		endif
 		if(order_info['status'] == 'WAIT_BUYER')
+			store = Mysql.fetchOne(db, "select gid,num from goods_store where gid = '" + order_info["gid"] + "'");
+			if(order_info['num'] > store['num'])
+				exit('库存不足，当前可用库存：' + store['num']);
+			endif
 			// 通过GoodsPayBase类的returnDoPayHtml方法，构建支付宝支付相关的form表单信息，并跳转到支付宝的支付页面去完成继续付款的操作
 			print GoodsPayBase.returnDoPayHtml(order_info, FALSE);
 		else

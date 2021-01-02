@@ -21,9 +21,9 @@
 			<div class="goods-name">{{ goods_info.name }}</div>
 			<div class="goods-price">¥{{ goods_info.price }}</div>
 			<div class="goods-market-price">市场价：{{ goods_info.market_price }}</div>
-			<div class="goods-store-num"><input type="number" v-model="buy_num" /> 库存：{{ goods_info.store_num }}</div>
+			<div class="goods-store-num">购买数量：<input type="number" v-model="buy_num" style="width:80px" /> (库存：{{ goods_info.store_num }})</div>
 			<div class="goods-pay">
-				<button @click="pay_click" id="goods-pay-btn" class="btn btn-danger pull-center" role="button">立即购买</a>
+				<button @click="pay_click" id="goods-pay-btn" class="btn btn-danger pull-center" role="button">立即购买</button>
 			</div>
 		</div>
 		<div class="clearfloat"></div>
