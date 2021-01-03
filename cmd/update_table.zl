@@ -1,0 +1,47 @@
+inc 'common.zl';
+
+update_lock_file = 'update.lock';
+
+ret = bltReadFile(update_lock_file, &update_version);
+
+if(ret != 0)
+	update_version = '0.1.0';
+endif
+
+if(bltVersionCompare(update_version, config['version']) == 0)
+	print "update_version (" + update_version + ") == config['version'], no need to update";
+	bltExit();
+else
+	print "update_version (" + update_version + ")";
+endif
+
+querys = rqtGetQuery();
+
+if(bltVersionCompare(update_version, '0.1.0') <= 0)
+	print "update from 0.1.0: ";
+	// 创建商品库存表
+	Mysql.Exec(db, "CREATE TABLE goods_store(
+		id int NOT NULL AUTO_INCREMENT, 
+		gid int NOT NULL DEFAULT '0' COMMENT '商品ID',
+		num int NOT NULL DEFAULT '0' COMMENT '商品库存',
+		PRIMARY KEY (id),
+		KEY `gid` (`gid`)
+		) ENGINE=InnoDB DEFAULT CHARSET utf8 COLLATE utf8_general_ci COMMENT='商品库存表'");
+	print 'create table goods_store';
+
+	// orders表增加pay_time字段
+	Mysql.Exec(db, "ALTER TABLE orders ADD COLUMN `pay_time` timestamp NULL DEFAULT NULL COMMENT '订单支付时间' AFTER `update_time`");
+	print 'add column pay_time to orders table';
+
+	store_num = bltInt(querys['store_num']);
+	store_num = store_num < 0 ? 0 : store_num;
+	print 'store_num: ' + store_num;
+	Mysql.Exec(db, "INSERT INTO goods_store (gid, num) SELECT id," + store_num + " FROM goods");
+	print 'init goods_store table';
+	print '----------------------';
+endif
+
+bltWriteFile(update_lock_file, config['version']);
+
+print 'update table from ' + update_version + ' to ' + config['version'];
+
