@@ -22,7 +22,7 @@
 			<div v-for="goods_item in item.goods_list" class="index-thumbnail">
 				<div class="thumbnail">
 					<a :href="'/goods.zl?id='+goods_item.id" :title="goods_item.name">
-						<img :src="goods_item.thumbnail" :alt="goods_item.name" width="300" height="300"/>
+						<img :src="goods_item.thumbnail != '' ? goods_item.thumbnail : '/assets/image/defaultpic.jpg'" :alt="goods_item.name" width="300" height="300"/>
 						<div class="caption">
 							<p class="goods-item-price">{{ goods_item.price }}</p>
 							<p class="goods-item-name">{{ goods_item.name }}</p>

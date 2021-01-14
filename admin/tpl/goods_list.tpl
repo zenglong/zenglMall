@@ -46,7 +46,7 @@
 			<template v-if="datas.items.length > 0">
 			<tr v-for="item in datas.items">
 				<td>{{item.id}}</td>
-				<td><img v-if="item.thumbnail" :src="item.thumbnail" width="130" height="130" /></td>
+				<td><img :src="item.thumbnail != '' ? item.thumbnail : '/assets/image/defaultpic.jpg'" width="130" height="130" /></td>
 				<td>{{item.name}}</td>
 				<td>{{item.price}}<br/><span title="市场价">({{item.market_price}})</span></td>
 				<td>{{item.store_num}}</td>

@@ -88,6 +88,10 @@ CKEDITOR.replace( 'content' ,{
 	filebrowserUploadMethod: 'form',
 	tabSpaces: 4
 });
+
+// for ie10 and ie11
+CKEDITOR.instances.content.setData(datas.posts ? datas.posts.content: '');
+
 $('#thumbnail-upload').fileupload({
 	dataType: 'json',
 	formData: {},

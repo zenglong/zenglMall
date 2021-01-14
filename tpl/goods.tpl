@@ -15,7 +15,7 @@
 	</div>
 	<div class="row">
 		<div class="goods-image pull-left">
-			<img v-if="goods_info.thumbnail" :src="goods_info.thumbnail" width="330" height="330"/>
+			<img :src="goods_info.thumbnail != '' ? goods_info.thumbnail : '/assets/image/defaultpic.jpg'" width="330" height="330"/>
 		</div>
 		<div class="goods-name-price pull-left">
 			<div class="goods-name">{{ goods_info.name }}</div>
@@ -36,7 +36,7 @@
 			<div v-for="goods_item in goods_list" class="index-thumbnail">
 				<div class="thumbnail">
 					<a :href="'/goods.zl?id='+goods_item.id" :title="goods_item.name">
-						<img :src="goods_item.thumbnail" :alt="goods_item.name" width="300" height="300"/>
+						<img :src="goods_item.thumbnail != '' ? goods_item.thumbnail : '/assets/image/defaultpic.jpg'" :alt="goods_item.name" width="300" height="300"/>
 						<div class="caption">
 							<p class="goods-item-price">{{ goods_item.price }}</p>
 							<p class="goods-item-name">{{ goods_item.name }}</p>
