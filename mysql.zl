@@ -118,24 +118,28 @@ class Mysql
 		endif
 	endfun
 
+	// 通过START TRANSACTION语句开启数据库事务
 	fun StartTransaction(obj)
 		Mysql obj;
 		Mysql.Exec(obj, "START TRANSACTION");
 		obj.is_transaction = TRUE;
 	endfun
 
+	// 通过COMMIT语句提交事务
 	fun Commit(obj)
 		Mysql obj;
 		Mysql.Exec(obj, "COMMIT");
 		obj.is_transaction = FALSE;
 	endfun
 
+	// 通过ROLLBACK语句回滚事务，从而可以将事务中执行过的数据库操作撤销掉
 	fun Rollback(obj)
 		Mysql obj;
 		Mysql.Exec(obj, "ROLLBACK");
 		obj.is_transaction = FALSE;
 	endfun
 
+	// 获取上一次mysql操作所影响的记录数
 	fun AffectedRows(obj)
 		Mysql obj;
 		return mysqlAffectedRows(obj.con);

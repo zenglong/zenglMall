@@ -1,13 +1,16 @@
 inc 'common.zl';
 
+// 该脚本会根据update.lock中记录的更新用的源版本号，以及配置文件中的当前代码版本号，对数据库表结构进行升级，从而让数据库的表结构能够和当前版本的代码相匹配
 update_lock_file = 'update.lock';
 
 ret = bltReadFile(update_lock_file, &update_version);
 
+// 如果没有update.lock文件，则将更新的源版本号设置为0.1.0，表示从0.1.0版本开始进行更新升级
 if(ret != 0)
 	update_version = '0.1.0';
 endif
 
+// 如果更新的源版本号，和当前的代码版本号相同，则无需进行更新，给出相关提示后，直接退出脚本
 if(bltVersionCompare(update_version, config['version']) == 0)
 	print "update_version (" + update_version + ") == config['version'], no need to update";
 	bltExit();
@@ -17,6 +20,7 @@ endif
 
 querys = rqtGetQuery();
 
+// 如果更新的源版本号小于等于0.1.0的版本，则创建商品库存表，同时在orders订单表中增加pay_time即订单支付时间字段
 if(bltVersionCompare(update_version, '0.1.0') <= 0)
 	print "update from 0.1.0: ";
 	// 创建商品库存表
@@ -33,9 +37,11 @@ if(bltVersionCompare(update_version, '0.1.0') <= 0)
 	Mysql.Exec(db, "ALTER TABLE orders ADD COLUMN `pay_time` timestamp NULL DEFAULT NULL COMMENT '订单支付时间' AFTER `update_time`");
 	print 'add column pay_time to orders table';
 
+	// 可以通过store_num的命令行参数来设置商品库存表中每个商品的初始库存，如果没有在命令行中指定该参数的话，那么初始库存就是0
 	store_num = bltInt(querys['store_num']);
 	store_num = store_num < 0 ? 0 : store_num;
 	print 'store_num: ' + store_num;
+	// 初始化商品库存表
 	Mysql.Exec(db, "INSERT INTO goods_store (gid, num) SELECT id," + store_num + " FROM goods");
 	print 'init goods_store table';
 	print '----------------------';

@@ -12,6 +12,7 @@ fun init_db()
 	return db;
 endfun
 
+// cmd目录中的脚本只能在命令行中运行
 if(bltIsRunInCmd())
 	bltSetImmediatePrint(TRUE);
 	print 'now in cmd';

@@ -1,10 +1,13 @@
 inc 'common.zl';
 
+// 通过该脚本可以将所有超时的未付款订单都关闭掉，同时将所有超时的待收货订单进行自动确认收货
 querys = rqtGetQuery();
 
+// 可以在命令行中通过传递close_day参数来设置未付款订单的关闭超时时间，以天为单位，最少是3天
 close_day = bltInt(querys['close_day']);
 close_day = close_day < 3 ? 3 : close_day;
 
+// 可以在命令行中通过传递confirm_day参数来设置自动确认收货的时间，以天为单位，最少是10天
 confirm_day = bltInt(querys['confirm_day']);
 confirm_day = confirm_day < 10 ? 10 : confirm_day;
 
@@ -12,11 +15,13 @@ print 'time: ' + bltDate("%Y-%m-%d %H:%M:%S");
 print 'close_day: ' + close_day;
 print 'confirm_day: ' + confirm_day;
 
+// 关闭所有超过了指定天数的未付款订单(由close_day来确定天数)
 data['status'] = 'CLOSE';
 data['update_time'] = bltDate("%Y-%m-%d %H:%M:%S");
 Mysql.Update(db, 'orders', data, "(`status` = 'WAIT_BUYER') AND (`create_time` < (NOW() - INTERVAL " + close_day + " DAY))");
 print "update table `orders` to close WAIT_BUYER order, affected rows: " + Mysql.AffectedRows(db);
 
+// 将所有超过了指定天数的待收货订单都设置为已收货状态(由confirm_day来确定天数)
 data['status'] = 'BUYER_CONFIRM';
 data['confirm_time'] = data['update_time'] = bltDate("%Y-%m-%d %H:%M:%S");
 Mysql.Update(db, 'orders', data, "(`status` = 'WAIT_BUYER_CONFIRM') AND (`send_time` < (NOW() - INTERVAL " + confirm_day + " DAY))");
