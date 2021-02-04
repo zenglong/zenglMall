@@ -146,8 +146,8 @@ class Goods
 		if(posts['submit'])
 			id = bltInt(posts['id']);
 			Mysql.StartTransaction(db);
-			// 通过事务和FOR UPDATE语句对商品库存表中id所对应的记录行加行锁(注意，这里的gid在创建表结构时就设置了索引，所以可以触发InnoDB的行锁，如果gid不是索引，则会触发表锁，将全表都锁住)
-			// 通过加锁以保证商品库存操作的原子性，防止并发操作导致出现错误的商品库存
+			// 通过事务和FOR UPDATE语句对商品库存表中gid所对应的记录行加行锁(注意，这里的gid在创建表结构时就设置了索引，所以可以触发InnoDB的行锁，如果gid不是索引，则会触发表锁，将全表都锁住)
+			// 通过加锁以保证商品库存操作的原子性，防止并发操作可能导致的错误的商品库存
 			store = Mysql.fetchOne(db, "select gid,num from goods_store where gid = '" + id + "' FOR UPDATE");
 			Goods.validate(db, posts, FALSE);
 			store['num'] = posts['store_num'];

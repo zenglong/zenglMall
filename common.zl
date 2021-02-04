@@ -5,9 +5,10 @@ def USER_ADMIN 'user_admin/admin.zl';
 
 // 通过bltVersionCompare模块函数检测zenglServer的版本号，如果版本号不符合最低版本要求，则直接让脚本退出运行
 zls_version = bltGetZenglServerVersion();
+zls_version_str = zls_version[0] + '.' + zls_version[1] + '.' + zls_version[2];
 zls_min_version = 'v0.24.0';
-if(bltVersionCompare(zls_version[0] + '.' + zls_version[1] + '.' + zls_version[2], zls_min_version) < 0)
-	print 'zenglServer version < ' + zls_min_version;
+if(bltVersionCompare(zls_version_str, zls_min_version) < 0)
+	print 'zenglServer version (' + zls_version_str + ') < ' + zls_min_version;
 	bltExit();
 endif
 

@@ -1,6 +1,6 @@
 ## 介绍
 
-zenglMall是使用zengl语言开发商城系统的项目，下面以CentOS 7.x为例，来说明如何让zenglMall运行起来。
+zenglMall是使用zengl语言开发商城系统的项目，该项目使用MIT开源协议，没有使用上的限制，下面以CentOS 7.x为例，来说明如何让zenglMall运行起来。
 
 ```
 [zengl@localhost zenglServer]$ cat /etc/redhat-release
@@ -25,11 +25,11 @@ session_cleaner_interval = 3600; // 会话文件清理进程的清理时间间�
 .................................
 ```
 
-然后运行zenglServer(v0.1.0的zenglMall对zenglServer的最低版本要求是v0.23.0，需要开启mysql，magick，pcre以及openssl模块)：
+然后运行zenglServer(v0.2.0的zenglMall对zenglServer的最低版本要求是v0.24.0，需要开启mysql，magick，pcre以及openssl模块)：
 
 ```
 [zengl@localhost zenglServer]$ ./zenglServer -v
-zenglServer version: v0.23.0
+zenglServer version: v0.24.0
 zengl language version: v1.8.3
 [zengl@localhost zenglServer]$ ./zenglServer
 [zengl@localhost zenglServer]$ tail -f logfile -n 20
@@ -98,7 +98,7 @@ config['db_port'] = 3306;         // 填写mysql数据库端口
 config['db_user'] = 'root';       // 填写mysql用户名
 config['db_passwd'] = '123456';   // 填写mysql密码
 config['db_name'] = 'testmall';   // 填写mysql数据库名
-config['version'] = '0.1.0';      // zenglMall版本号，无需修改
+config['version'] = '0.2.0';      // zenglMall版本号，无需修改
 config['site_name'] = 'zenglMall'; // 站点名称
 config['site_desc'] = 'mall made by zengl language'; // 站点描述
 // 支付宝的APPID(发起请求的应用ID)
@@ -185,6 +185,14 @@ zenglMall版本信息：0.1.0
 登录成功后的后台地址：http://192.168.1.113:8083/admin/admin.zl ，此地址是概览页面，该页面可以看到一些基本信息，例如：mysql版本号，zenglServer版本号，zengl语言版本等等，还可以在管理后台添加分类，添加商品，以及进行订单管理等。
 
 在后台添加商品后，如果要测试支付功能，除了要配置上面提到过的支付宝的APPID，商户私钥等配置外，还必须确保配置中的异步通知地址能被外网访问到(因为支付完成后，支付宝会将支付完成情况通过这个地址反馈给服务器，因此，ip地址或域名必须能被外网访问到)，对于本地测试环境，可以利用ngrok之类的工具，将外网请求转发到本地测试环境。
+
+注意：虽然管理后台可以添加很多级分类，但是前台首页，前台商品列表页，前台商品详情页默认只能展示两级的分类(一级分类也就是顶层分类和二级分类)以及这两级分类下的相关商品。此外，作者只在沙箱环境测试了支付宝的支付功能，因为正式环境需要企业资质才能申请。
+
+## 更新升级
+
+当zenglMall有新版本时，要对系统中的旧版本的zenglMall进行更新升级的话，除了要将代码更新到最新版本外，还需要将数据库进行升级。
+
+从0.2.0版本开始，在根目录下的cmd目录中，增加了一个update_table.zl的脚本(只能在命令行中运行此脚本)，该脚本会根据update.lock文件中记录的更新用的源版本号(如果没有update.lock文件，则源版本号为0.1.0，表示从0.1.0版本开始进行更新升级)，以及配置文件中的当前代码版本号，对数据库表结构进行升级，从而让数据库的表结构能够和当前版本的代码相匹配。
 
 ## 使用nginx反向代理
 
