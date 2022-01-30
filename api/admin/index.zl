@@ -1,0 +1,13 @@
+inc 'common.zl';
+
+querys = rqtGetQuery();
+page = bltInt(querys['page']);
+pageSize = bltInt(querys['pageSize']);
+limit = pageSize <= 0 ? 10 : pageSize;
+offset = page <= 0 ? 0 : (page - 1) * limit;
+db = init_db();
+tmp = Mysql.fetchOne(db, "select count(1) as cnt from admin_opt_log");
+data['total'] = bltInt(tmp['cnt']);
+data['list_data'] = Mysql.fetchAll(db, "select * from admin_opt_log order by id desc limit " + offset + "," + limit);
+common_json_success(data);
+

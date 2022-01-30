@@ -1,0 +1,11 @@
+inc 'common.zl';
+
+// 退出后台管理页面，也就是执行登出操作
+// 删除后台登录相关的会话信息
+if(bltCount(sess_data) > 0)
+	token = bltStr(&headers['X-Token']);
+	sessDelete(token);
+endif
+
+common_json_success(NULL, '登出成功');
+

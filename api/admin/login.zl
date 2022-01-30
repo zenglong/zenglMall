@@ -1,0 +1,58 @@
+use builtin, request, mysql, session;
+inc '../def.zl';
+inc '../config.zl';
+inc '../mysql.zl';
+inc '../fatal_error.zl';
+
+rqtSetResponseHeader("Access-Control-Allow-Origin: *");
+rqtSetResponseHeader("Access-Control-Allow-Methods: GET,POST,PUT,DELETE");
+rqtSetResponseHeader("Access-Control-Allow-Headers: *");
+rqtSetResponseHeader("Access-Control-Max-Age: 10");
+rqtSetResponseHeader("Content-Type: application/json");
+
+// 该脚本用于执行和后台登录相关的操作
+headers = rqtGetHeaders();
+sess_data = sessGetData(bltStr(&headers['X-Token']));
+// 如果已经登录过后台了，就直接跳转到后台管理的概览页面
+if(bltCount(sess_data) > 0 && sess_data['uid'] > 0)
+	data['code'] = -1;
+	data['msg'] = '已经登录过了';
+	print bltJsonEncode(data);
+	bltExit();
+endif
+
+posts = rqtGetBodyAsArray();
+if(!posts['submit'])
+	data['code'] = -1;
+	data['msg'] = '无效请求';
+	print bltJsonEncode(data);
+else
+	bltStr(&posts['username'], TRUE);
+	bltStr(&posts['password'], TRUE);
+	Mysql db;
+	db = bltArray();
+	Mysql.init(db, config);
+	result = Mysql.fetchOne(db, "select * from admin_users where username='" + 
+					mysqlRealEscapeString(db.con, posts['username']) + "'");
+	data['code'] = -1;
+	data['msg'] = '用户名或密码错误！';
+	// 对提交的用户名密码进行校验，校验通过，则设置后台登录相关的会话信息
+	if(bltCount(result) > 0)
+		if(bltMd5(posts['password']) == result['password'])
+			data['code'] = 0;
+			data['msg'] = '登录成功';
+			sess_data['username'] = result['username'];
+			sess_data['nickname'] = result['nickname'];
+			sess_data['uid'] = result['id'];
+			sess_id = sessMakeId();
+			sessSetData(sess_id, sess_data);
+			data['token'] = sess_id;
+			save_opt_log['user'] = result['username'];
+			save_opt_log['log'] = result['nickname'] + '登录后台';
+			save_opt_log['opt_time'] = bltDate("%Y-%m-%d %H:%M:%S");
+			Mysql.Insert(db, 'admin_opt_log', save_opt_log);
+		endif
+	endif
+	print bltJsonEncode(data);
+endif
+

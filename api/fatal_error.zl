@@ -1,0 +1,10 @@
+/**
+ * 当前台脚本发生严重的运行时错误时，需要调用的脚本回调函数，该函数会将error错误信息，
+ * 以及stack脚本的函数栈追踪信息都记录到logs目录下的fata_error_xxx.log日志中，这里xxx表示脚本出错时的时间(采用类似20201129的年月日的格式)
+ */
+fun fatal_error_callback(error, stack)
+	bltWriteFile('logs/fatal_error_'+bltDate('%Y%m%d')+'.log', bltDate('%Y-%m-%d %H:%M:%S') + ' - ' + error + ' backtrace: \n' + stack + '\n', 
+		DEFAULT_WRITE_LEN, APPEND_MODE);
+endfun
+
+bltFatalErrorCallback('fatal_error_callback');

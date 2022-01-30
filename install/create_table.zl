@@ -140,6 +140,17 @@ if(mysqlQuery(con, "CREATE TABLE orders (
 	finish_with_error(con);
 endif
 
+// 创建操作日志表
+if(mysqlQuery(con, "CREATE TABLE admin_opt_log (
+	`id` int NOT NULL AUTO_INCREMENT, 
+	`user` varchar(255) NOT NULL DEFAULT '' COMMENT '操作人', 
+	`log` varchar(255) NOT NULL DEFAULT '' COMMENT '操作日志',
+	`opt_time` datetime NULL DEFAULT NULL COMMENT '操作时间',
+	PRIMARY KEY (`id`)
+	) ENGINE=InnoDB DEFAULT CHARSET utf8 COLLATE utf8_general_ci COMMENT='后台操作日志表'"))
+	finish_with_error(con);
+endif
+
 data['username'] = 'admin';
 data['nickname'] = '管理员';
 data['password'] = 'admin@123456';

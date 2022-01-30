@@ -3,19 +3,24 @@ inc '../user_sess.zl';
 inc 'helper.zl';
 
 querys = rqtGetQuery();
-action = querys['act'] ? querys['act'] : 'index';
-if(action == 'index')
-	OrderList.index();
-elif(action == 'view')
-	OrderList.view(bltInt(querys['id']));
-elif(action == 'buyer_confirm')
-	OrderList.setBuyerConfirm();
-else
-	print 'invalid act';
-endif
+OrderList.act();
 
 // OrderList类用于前台用户执行和订单相关的操作
 class OrderList
+	fun act()
+		global querys;
+		action = querys['act'] ? querys['act'] : 'index';
+		if(action == 'index')
+			self.index();
+		elif(action == 'view')
+			self.view(bltInt(querys['id']));
+		elif(action == 'buyer_confirm')
+			self.setBuyerConfirm();
+		else
+			print 'invalid act';
+		endif
+	endfun
+
 	// 前台会员中心订单列表页面
 	fun index()
 		global querys, db, sess_data;

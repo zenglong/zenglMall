@@ -45,6 +45,15 @@ if(bltVersionCompare(update_version, '0.1.0') <= 0)
 	Mysql.Exec(db, "INSERT INTO goods_store (gid, num) SELECT id," + store_num + " FROM goods");
 	print 'init goods_store table';
 	print '----------------------';
+elif(bltVersionCompare(update_version, '0.2.0') <= 0)
+	Mysql.Exec(db, "CREATE TABLE admin_opt_log (
+	`id` int NOT NULL AUTO_INCREMENT, 
+	`user` varchar(255) NOT NULL DEFAULT '' COMMENT '操作人', 
+	`log` varchar(255) NOT NULL DEFAULT '' COMMENT '操作日志',
+	`opt_time` datetime NULL DEFAULT NULL COMMENT '操作时间',
+	PRIMARY KEY (`id`)
+	) ENGINE=InnoDB DEFAULT CHARSET utf8 COLLATE utf8_general_ci COMMENT='后台操作日志表'");
+	print 'create table admin_opt_log';
 endif
 
 bltWriteFile(update_lock_file, config['version']);

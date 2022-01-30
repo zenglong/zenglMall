@@ -1,0 +1,16 @@
+inc 'common.zl';
+
+fun get_route(id, title, path)
+	route = bltArray();
+	route['id'] = id;
+	route['title'] = title;
+	route['name'] = path;
+	return route;
+endfun
+
+data['avatar'] = '';
+data['name'] = sess_data['nickname'];
+routes[] = get_route(1, '控制台', 'admin/index');
+routes[] = get_route(2, '菜单管理', 'menu/index');
+data['routes'] = routes;
+common_json_success(data);

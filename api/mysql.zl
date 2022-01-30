@@ -2,6 +2,7 @@
 class Mysql
 	con;
 	error_tpl;
+	debug;
 	is_transaction;
 	/** 
 	 * 当操作数据库发生错误时，直接退出脚本，同时会返回500错误给客户端，所有的500错误对应的具体错误原因都会记录到zenglServer日志中，
@@ -21,11 +22,19 @@ class Mysql
 		bltExit(data['error'] + (sql ? ' sql: ' + sql : ''));
 	endfun
 
+	fun log(obj, sql)
+		self obj;
+		if(obj.debug)
+			bltWriteFile('logs/sql_'+bltDate('%Y%m%d')+'.log', bltDate('%Y-%m-%d %H:%M:%S') + ' - ' + sql + '\n', DEFAULT_WRITE_LEN, APPEND_MODE);
+		endif
+	endfun
+
 	// 初始化mysql数据库连接，并将mysql连接设置到obj的con成员中
 	fun init(obj, config, error_tpl)
 		self obj;
 		obj.is_transaction = FALSE;
 		obj.error_tpl = error_tpl;
+		obj.debug = config['db_debug'];
 		obj.con = mysqlInit();
 		if(!mysqlRealConnect(obj.con, config['db_host'], config['db_user'], 
 					config['db_passwd'], config['db_name'], config['db_port']))
@@ -39,6 +48,7 @@ class Mysql
 	// 根据sql语句执行查询操作，返回一条查询记录(返回数组的各成员对应该条查询记录的各个字段)
 	fun fetchOne(obj, sql)
 		self obj;
+		self.log(obj, sql);
 		if(mysqlQuery(obj.con, sql))
 			self.error(obj);
 		endif
@@ -53,6 +63,7 @@ class Mysql
 	// 根据sql语句执行查询操作，返回所有的查询记录(返回数组的每个成员都对应一条查询记录)
 	fun fetchAll(obj, sql)
 		self obj;
+		self.log(obj, sql);
 		if(mysqlQuery(obj.con, sql))
 			self.error(obj, sql);
 		endif
