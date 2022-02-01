@@ -1,6 +1,39 @@
 <template>
   <div class="app-container">
-    <el-table ref="multipleTable1" border :data="list_data" style="width: 96%; margin-top: 20px; margin-left: 20px"
+    <el-descriptions class="margin-top" title="系统信息" :column="3" :size="size" border>
+      <el-descriptions-item>
+        <template slot="label">
+          zenglServer版本
+        </template>
+        {{ zenglServerVersion }}
+      </el-descriptions-item>
+      <el-descriptions-item>
+        <template slot="label">
+          zengl语言版本
+        </template>
+        {{ zenglVersion }}
+      </el-descriptions-item>
+      <el-descriptions-item>
+        <template slot="label">
+          zenglMall版本
+        </template>
+        {{ zenglMallVersion }}
+      </el-descriptions-item>
+      <el-descriptions-item>
+        <template slot="label">
+          mysql客户端库版本
+        </template>
+        {{ mysqlClientInfo }}
+      </el-descriptions-item>
+      <el-descriptions-item>
+        <template slot="label">
+          mysql服务端版本
+        </template>
+        {{ mysqlServerVersion }}
+      </el-descriptions-item>
+    </el-descriptions>
+
+    <el-table ref="multipleTable1" border :data="list_data" style="width: 100%; margin-top: 20px; margin-left: 0px"
               v-loading="tabLoading" :fit="true">
         <el-table-column prop="id" label="ID" width="80"></el-table-column>
         <el-table-column prop="user" label="用户" width="200"></el-table-column>
@@ -29,16 +62,20 @@ export default {
       loading: true,
       tabLoading: false,
       dialogVisible: false,
+      zenglServerVersion: '',
+      zenglVersion: '',
+      zenglMallVersion: '',
+      mysqlClientInfo: '',
+      mysqlServerVersion: '',
       currentPage: 1,
       pageSize: 10,
       total: 0,
+      size: '',
       list_data: [],
-      add_camp_url: 'about:blank',
-      dialogTitle: '添加机构账号',
     }
   },
-  created() {
-    this.onSearchSubmit()
+  mounted() {
+    this.onSearchSubmit(1, true)
   },
   methods: {
     handleSizeChange(val) {
@@ -50,13 +87,23 @@ export default {
       this.currentPage = val
       this.onSearchSubmit(val)
     },
-    onSearchSubmit(currentPage = 1) {
+    onSearchSubmit(currentPage = 1, is_mounted = false) {
       this.currentPage = currentPage
-      this.loadCustomerData(this.currentPage, this.pageSize)
+      this.loadCustomerData(this.currentPage, this.pageSize, is_mounted)
     },
-    loadCustomerData (page, pageSize) {
+    loadCustomerData (page, pageSize, is_mounted = false) {
       this.tabLoading = true
-      getList({page, pageSize}).then(response => {
+      getList({page, pageSize, is_mounted}).then(response => {
+        if(is_mounted) {
+          this.zenglServerVersion = response.data.zenglServerVersion[0] + '.' + 
+              response.data.zenglServerVersion[1] + '.' + response.data.zenglServerVersion[2]
+          this.zenglVersion = response.data.zenglVersion[0] + '.' + 
+              response.data.zenglVersion[1] + '.' + response.data.zenglVersion[2]
+          this.zenglMallVersion = response.data.mallVersion
+          this.mysqlClientInfo = response.data.mysql_client_info
+          this.mysqlServerVersion = response.data.mysql_server_version[0] + '.' +
+              response.data.mysql_server_version[1] + '.' + response.data.mysql_server_version[2]
+        }
         this.list_data = response.data.list_data
         this.total = response.data.total
         this.tabLoading = false

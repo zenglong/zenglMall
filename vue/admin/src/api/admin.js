@@ -8,3 +8,12 @@ export function getList(params)
     params
   })
 }
+
+export function getAdminUserList(params)
+{
+  return request({
+    url: '/admin/admin_user_list.zl',
+    method: 'get',
+    params
+  })
+}

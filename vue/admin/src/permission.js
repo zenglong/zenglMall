@@ -18,7 +18,10 @@ export function getPageTitle(pageTitle) {
 
 const allowedRoutes = [
   'admin/index',
-  'admin/clearCache',
+  'admin/users',
+  'front/users',
+  'front/userinfo',
+
   'menu/index',
   'menu/AddMenu',
   'member/index',
@@ -27,6 +30,24 @@ const allowedRoutes = [
   'Authorize/addGroup'
 ]
 
+function addChildrenRoutes(route) {
+  let newroute = {
+    id: route['id'],
+    path: '/' + route['name'],
+    component: () => import('@/views/' + (allowedRoutes.indexOf(route['name']) !== -1 ? route['name'] : 'admin/empty')),
+    hidden: route['hidden'] ? true : false,
+    meta: { title: route['title'], icon: route['icon'], affix: false }
+  }
+  if(route['children'] && route['children'].length > 0) {
+    newroute['children'] = []
+    for(let k in route['children']) {
+      newroute['children'].push(addChildrenRoutes(route['children'][k]))
+    }
+  }
+
+  return newroute
+}
+
 function addNewRoutes(newroutes, routes) {
   for (let k in routes) {
     // console.log('addNewRoutes:', routes[k])
@@ -34,31 +55,19 @@ function addNewRoutes(newroutes, routes) {
       id: routes[k]['id'],
       path: '/' + routes[k]['name'],
       component: Layout,
+      hidden: routes[k]['hidden'] ? true : false,
       meta: { title: routes[k]['title'], icon: routes[k]['icon'] },
     }
-    if(!routes[k]['submenu']) {
-      newroute['children'] = [
-        {
-          id: routes[k]['id'],
-          path: '/' + routes[k]['name'],
-          component: () => import('@/views/' + (allowedRoutes.indexOf(routes[k]['name']) !== -1 ? routes[k]['name'] : 'admin/empty')),
-          meta: { title: routes[k]['title'], icon: routes[k]['icon'], affix: false }
-        }
-      ]
+    if(!routes[k]['children']) {
+      newroute['children'] = [addChildrenRoutes(routes[k])]
     }
     else {
-      newroute['alwaysShow'] = true
+      // newroute['alwaysShow'] = true
       newroute['children'] = []
-      let route_children = routes[k]['submenu']
+      let route_children = routes[k]['children']
       // console.log('route_children', route_children)
       for(let kv in route_children) {
-        newroute['children'].push({
-          id: route_children[kv]['id'],
-          path: '/' + route_children[kv]['name'],
-          name: 'id' + route_children[kv]['id'],
-          component: () => import('@/views/' + (allowedRoutes.indexOf(route_children[kv]['name']) !== -1 ? route_children[kv]['name'] : 'admin/empty')),
-          meta: { title: route_children[kv]['title'], icon: route_children[kv]['icon'], affix: false }
-        })
+        newroute['children'].push(addChildrenRoutes(route_children[kv]))
       }
     }
     newroutes.push(newroute)
