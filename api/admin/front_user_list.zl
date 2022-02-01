@@ -1,0 +1,52 @@
+inc 'common.zl';
+
+querys = rqtGetQuery();
+User.action(querys);
+class User
+	fun action(querys)
+		action = querys['act'] ? querys['act'] : 'index';
+		if(action == 'index')
+			self.index();
+		elif(action == 'view')
+			self.view(bltInt(querys['id']));
+		else
+			common_json_error('无效的请求');
+		endif
+	endfun
+
+	// 在管理后台，显示前台用户列表页面
+	fun index()
+		db = init_db();
+		posts = rqtGetBodyAsArray();
+		where = " where 1 ";
+		search_username = bltStr(&posts['username']);
+		if(search_username)
+			where += ' and username like "%' + Mysql.Escape(db, search_username) + '%"';
+		endif
+		search_nickname = bltStr(&posts['nickname']);
+		if(search_nickname)
+			where += ' and nickname like "%' + Mysql.Escape(db, search_nickname) + '%"';
+		endif
+		search_email = bltStr(&posts['email']);
+		if(search_email)
+			where += ' and email like "%' + Mysql.Escape(db, search_email) + '%"';
+		endif
+		page = bltInt(posts['page']);
+		pageSize = bltInt(posts['pageSize']);
+		limit = pageSize <= 0 ? 10 : pageSize;
+		offset = page <= 0 ? 0 : (page - 1) * limit;
+		tmp = Mysql.fetchOne(db, "select count(1) as cnt from users " + where);
+		data['total'] = bltInt(tmp['cnt']);
+		data['list_data'] = Mysql.fetchAll(db, "select id,username,nickname,email,reg_time from users " + 
+						where + " order by id desc limit " + offset + "," + limit);
+		common_json_success(data);
+	endfun
+
+	// 根据用户ID显示前台用户详情页面
+	fun view(id)
+		db = init_db();
+		data['user_info'] = Mysql.fetchOne(db, "select * from users where id = " + id);
+		common_json_success(data);
+	endfun
+endclass
+

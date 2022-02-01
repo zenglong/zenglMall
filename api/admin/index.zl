@@ -5,7 +5,17 @@ page = bltInt(querys['page']);
 pageSize = bltInt(querys['pageSize']);
 limit = pageSize <= 0 ? 10 : pageSize;
 offset = page <= 0 ? 0 : (page - 1) * limit;
+Mysql db;
 db = init_db();
+if(querys['is_mounted'] == 'true')
+	data['mysql_client_info'] = mysqlGetClientInfo();
+	// 在控制台页面会显示出mysql的版本号，zenglServer的版本号，
+	// zenglServer所嵌入的zengl语言的版本号，以及zenglMall的版本号信息
+	data['mysql_server_version'] = mysqlGetServerVersion(db.con);
+	data['zenglServerVersion'] = zls_version;
+	data['zenglVersion'] = bltGetZenglVersion();
+	data['mallVersion'] = config['version'];
+endif
 tmp = Mysql.fetchOne(db, "select count(1) as cnt from admin_opt_log");
 data['total'] = bltInt(tmp['cnt']);
 data['list_data'] = Mysql.fetchAll(db, "select * from admin_opt_log order by id desc limit " + offset + "," + limit);

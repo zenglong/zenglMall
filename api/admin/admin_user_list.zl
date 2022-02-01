@@ -1,0 +1,15 @@
+inc 'common.zl';
+
+querys = rqtGetQuery();
+page = bltInt(querys['page']);
+pageSize = bltInt(querys['pageSize']);
+limit = pageSize <= 0 ? 10 : pageSize;
+offset = page <= 0 ? 0 : (page - 1) * limit;
+Mysql db;
+db = init_db();
+// 后台用户列表会将所有后台用户的用户ID，用户名和用户昵称都显示出来
+tmp = Mysql.fetchOne(db, "select count(1) as cnt from admin_users");
+data['total'] = bltInt(tmp['cnt']);
+data['list_data'] = Mysql.fetchAll(db, "select * from admin_users order by id desc limit " + offset + "," + limit);
+common_json_success(data);
+

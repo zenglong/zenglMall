@@ -1,16 +1,24 @@
 inc 'common.zl';
 
-fun get_route(id, title, path)
+fun get_route(id, title, path, hidden = FALSE)
 	route = bltArray();
 	route['id'] = id;
 	route['title'] = title;
 	route['name'] = path;
+	if(hidden)
+		route['hidden'] = hidden;
+	endif
 	return route;
 endfun
 
 data['avatar'] = '';
 data['name'] = sess_data['nickname'];
-routes[] = get_route(1, '控制台', 'admin/index');
-routes[] = get_route(2, '菜单管理', 'menu/index');
+id = 1;
+routes[] = get_route(id++, '控制台', 'admin/index');
+routes[] = get_route(id++, '用户列表', 'admin/users');
+lastidx = bltCount(routes) - 1;
+routes[lastidx, 'children', 0] = get_route(id++, '后台用户', 'admin/users');
+routes[lastidx, 'children', 1] = get_route(id++, '前台用户', 'front/users');
 data['routes'] = routes;
 common_json_success(data);
+
