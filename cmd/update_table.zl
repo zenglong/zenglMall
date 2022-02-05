@@ -46,7 +46,7 @@ if(bltVersionCompare(update_version, '0.1.0') <= 0)
 	print 'init goods_store table';
 	print '----------------------';
 elif(bltVersionCompare(update_version, '0.2.0') <= 0)
-	Mysql.Exec(db, "CREATE TABLE admin_opt_log (
+	Mysql.Exec(db, "CREATE TABLE IF NOT EXISTS admin_opt_log (
 	`id` int NOT NULL AUTO_INCREMENT, 
 	`user` varchar(255) NOT NULL DEFAULT '' COMMENT '操作人', 
 	`log` varchar(255) NOT NULL DEFAULT '' COMMENT '操作日志',
@@ -54,6 +54,8 @@ elif(bltVersionCompare(update_version, '0.2.0') <= 0)
 	PRIMARY KEY (`id`)
 	) ENGINE=InnoDB DEFAULT CHARSET utf8 COLLATE utf8_general_ci COMMENT='后台操作日志表'");
 	print 'create table admin_opt_log';
+	Mysql.Exec(db, "ALTER TABLE category ADD COLUMN `delete_time` datetime NULL DEFAULT NULL COMMENT '删除时间'");
+	print 'add column delete_time to category table';
 endif
 
 bltWriteFile(update_lock_file, config['version']);

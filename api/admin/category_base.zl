@@ -1,0 +1,33 @@
+// 该类提供了一些和商品分类相关的通用方法
+class CategoryBase
+	// 根据pid获取商品分类列表
+	fun getListByPid(db, pid, field="")
+		field = field ? field : "id,name,description,pid,childcnt,type";
+		where = ' where delete_time is null ';
+		where += pid >= 0 ? ' and pid=' + pid : '';
+		return Mysql.fetchAll(db, "select "+field+" from category "+where + " order by id asc");
+	endfun
+
+	// 根据分类id获取商品分类信息
+	fun getCateInfo(db, id, field="")
+		field = field ? field : "*";
+		return Mysql.fetchOne(db, "select "+field+" from category where delete_time is null and id="+id);
+	endfun
+
+	// 初始化数据库连接
+	fun initDB()
+		global config;
+		db = bltArray();
+		Mysql.init(db, config);
+		return db;
+	endfun
+
+	// 更新某个商品分类的子分类数量
+	fun updateChildCnt(db, pid)
+		if(pid > 0)
+			ret = Mysql.fetchOne(db, "select count(1) as childcnt from category where delete_time is null and pid="+pid);
+			Mysql.Exec(db, "UPDATE category SET childcnt = '"+ret['childcnt']+"' where delete_time is null and id="+pid);
+		endif
+	endfun
+endclass
+

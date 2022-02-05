@@ -19,6 +19,7 @@ routes[] = get_route(id++, '用户列表', 'admin/users');
 lastidx = bltCount(routes) - 1;
 routes[lastidx, 'children', 0] = get_route(id++, '后台用户', 'admin/users');
 routes[lastidx, 'children', 1] = get_route(id++, '前台用户', 'front/users');
+routes[] = get_route(id++, '分类列表', 'category/index');
 data['routes'] = routes;
 common_json_success(data);
 

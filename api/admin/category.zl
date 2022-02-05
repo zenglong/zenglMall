@@ -1,0 +1,140 @@
+inc 'common.zl';
+inc 'category_base.zl';
+
+Category.action(rqtGetQuery());
+
+class Category
+	fun action(querys)
+		action = querys['act'] ? querys['act'] : 'treeList';
+		if(action == 'list')
+			self.list(querys);
+		elif(action == 'treeList')
+			self.treeList();
+		elif(action == 'selTreeList')
+			self.treeList("id,name,pid");
+		elif(action == 'add')
+			self.add();
+		elif(action == 'info')
+			self.info(bltInt(querys['id']));
+		elif(action == 'edit')
+			self.edit();
+		elif(action == 'delete')
+			self.delete(bltInt(querys['id']));
+		else
+			common_json_error('无效的请求');
+		endif
+	endfun
+
+	// 返回分类树
+	fun treeList(field = "")
+		db = CategoryBase.initDB();
+		categories = CategoryBase.getListByPid(db, -1, field);
+		roots = bltArray();
+		for(i=0;bltIterArray(categories,&i,&child);)
+			if(!child['pid'])
+				roots[] = child;
+				continue;
+			endif
+			for(j=0;bltIterArray(categories,&j,&parent);)
+				if(child['pid'] == parent['id'])
+					parent['children', bltCount(parent['children'])] = child;
+					break;
+				endif
+			endfor
+		endfor
+		data['categories'] = roots;
+		common_json_success(data);
+	endfun
+
+	fun checkPid(categories, pid, id)
+		if(!pid || !id)
+			return;
+		endif
+		for(i=0;bltIterArray(categories, &i, &v);)
+			if(v['id'] == pid)
+				if(v['id'] == id)
+					common_json_error("上级分类不能是当前分类或当前分类的子分类");
+				else
+					self.checkPid(categories, v['pid'], id);
+					return;
+				endif
+			endif
+		endfor
+		common_json_error("上级分类不存在");
+	endfun
+
+	// 对添加或编辑商品分类时，提交过来的数据进行校验
+	fun validate(db, posts, isadd = TRUE)
+		bltStr(&posts['name'], TRUE);
+		bltStr(&posts['description'], TRUE);
+		bltInt(&posts['pid'], TRUE);
+		id = bltInt(posts['id']);
+		if(!posts['name'])
+			err_msg = '分类名称不能为空';
+		elif(!isadd && !id)
+			err_msg = '无效的分类ID';
+		endif
+		if(err_msg)
+			common_json_error(err_msg);
+		endif
+		categories = CategoryBase.getListByPid(db, -1, "id,pid");
+		self.checkPid(categories, posts['pid'], id);
+	endfun
+
+	// 添加分类
+	fun add()
+		posts = rqtGetBodyAsArray();
+		db = CategoryBase.initDB();
+		self.validate(db, posts);
+		bltUnset(&posts['id']);
+		Mysql.Insert(db, 'category', posts);
+		CategoryBase.updateChildCnt(db, bltInt(posts['pid']));
+		common_json_success(NULL, '添加成功');
+	endfun
+
+	// 获取分类信息
+	fun info(id)
+		if(!id)
+			common_json_error('无效的分类ID');
+		endif
+		data['category'] = CategoryBase.getCateInfo(CategoryBase.initDB(), id);
+		if(!bltCount(data['category']))
+			common_json_error('分类不存在');
+		endif
+		common_json_success(data);
+	endfun
+
+	// 编辑分类
+	fun edit()
+		posts = rqtGetBodyAsArray();
+		db = CategoryBase.initDB();
+		id = bltInt(posts['id']);
+		self.validate(db, posts, FALSE);
+		oldinfo = CategoryBase.getCateInfo(db, id, "pid");
+		Mysql.Update(db, 'category', posts, 'id=' + id);
+		if(oldinfo['pid'] != bltInt(&posts['pid'], TRUE))
+			CategoryBase.updateChildCnt(db, posts['pid']);
+			CategoryBase.updateChildCnt(db, oldinfo['pid']);
+		endif
+		common_json_success(NULL, "编辑成功");
+	endfun
+
+	// 删除分类
+	fun delete(id)
+		if(!id)
+			common_json_error('无效的分类ID');
+		endif
+		category = CategoryBase.getCateInfo(db = CategoryBase.initDB(), id);
+		if(!bltCount(category))
+			common_json_error('分类不存在');
+		endif
+		if(category['childcnt'] > 0) 
+			common_json_error('该分类包含子分类，需要先删除子分类');
+		endif
+		save['delete_time'] = bltDate("%Y-%m-%d %H:%M:%S");
+		Mysql.Update(db, 'category', save, 'id=' + id);
+		CategoryBase.updateChildCnt(db, category['pid']);
+		common_json_success(NULL, "删除成功");
+	endfun
+endclass
+

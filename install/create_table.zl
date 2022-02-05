@@ -45,6 +45,7 @@ if(mysqlQuery(con, "CREATE TABLE category(
 	pid int NOT NULL DEFAULT '0' COMMENT '上级分类ID', 
 	childcnt int NOT NULL DEFAULT '0' COMMENT '子分类数量',
 	type tinyint NOT NULL DEFAULT '0' COMMENT '类型:0表示普通商品分类,1表示外部链接',
+	`delete_time` datetime NULL DEFAULT NULL COMMENT '删除时间',
 	PRIMARY KEY (id)
 	) ENGINE=InnoDB DEFAULT CHARSET utf8 COLLATE utf8_general_ci COMMENT='分类表'"))
 	finish_with_error(con);
