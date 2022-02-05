@@ -21,6 +21,7 @@ const allowedRoutes = [
   'admin/users',
   'front/users',
   'front/userinfo',
+  'category/index',
 
   'menu/index',
   'menu/AddMenu',
