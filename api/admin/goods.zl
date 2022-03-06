@@ -1,0 +1,38 @@
+inc 'common.zl';
+
+Goods.action(rqtGetQuery());
+
+class Goods
+	fun action(querys)
+		action = querys['act'] ? querys['act'] : 'list';
+		if(action == 'list')
+			self.list();
+		endif
+	endfun
+
+	fun list()
+		db = init_db();
+		posts = rqtGetBodyAsArray();
+		where = " where 1 ";
+		name = bltStr(&posts['name']);
+		if(name)
+			where += ' and g.name like "%' + Mysql.Escape(db, name) + '%"';
+		endif
+		cid = bltInt(&posts['cid']);
+		if(cid > 0)
+			where += ' and g.cid = ' + cid;
+		endif
+		tmp = Mysql.fetchOne(db, "select count(1) as cnt from goods as g " + where);
+		data['total'] = bltInt(tmp['cnt']);
+		page = bltInt(posts['page']);
+		pageSize = bltInt(posts['pageSize']);
+		limit = pageSize <= 0 ? 10 : pageSize;
+		offset = page <= 0 ? 0 : (page - 1) * limit;
+		data['list_data'] = Mysql.fetchAll(db, "select g.id,g.name,thumbnail,uid,price,market_price,created_at,updated_at, gs.num as store_num, c.name as cname from goods as g " + 
+				" left join goods_store as gs on gs.gid=g.id " + 
+				" left join category as c on c.id=g.cid "+ where +
+				" order by id desc limit " + offset + "," + limit);
+		common_json_success(data);
+	endfun
+endclass
+

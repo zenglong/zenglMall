@@ -42,7 +42,7 @@ fun common_json_success(data = NULL, msg = '', code = 0)
 	bltExit();
 endfun
 
-fun common_json_error(msg = '', data = NULL, code = ERROR_CODE)
+fun common_json_error(msg = '', data = NULL, code = -1)
 	retval['code'] = code;
 	retval['msg'] = msg;
 	retval['data'] = data;
