@@ -8,3 +8,7 @@ def DEFAULT_WRITE_LEN -1;
 
 def ERROR_CODE -1;
 
+def TRIM_LEFT 1;
+def TRIM_RIGHT 2;
+def TRIM_BOTH 3;
+

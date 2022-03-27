@@ -2,16 +2,10 @@ use builtin, request, mysql, session;
 
 inc '../def.zl';
 
-rqtSetResponseHeader("Access-Control-Allow-Origin: *");
-rqtSetResponseHeader("Access-Control-Allow-Methods: GET,POST,PUT,DELETE");
-rqtSetResponseHeader("Access-Control-Allow-Headers: *");
-rqtSetResponseHeader("Access-Control-Max-Age: 10");
-rqtSetResponseHeader("Content-Type: application/json");
-
 // 通过bltVersionCompare模块函数检测zenglServer的版本号，如果版本号不符合最低版本要求，则直接让脚本退出运行
 zls_version = bltGetZenglServerVersion();
 zls_version_str = zls_version[0] + '.' + zls_version[1] + '.' + zls_version[2];
-zls_min_version = 'v0.25.0';
+zls_min_version = 'v0.25.1';
 if(bltVersionCompare(zls_version_str, zls_min_version) < 0)
 	common_json_error('zenglServer version (' + zls_version_str + ') < ' + zls_min_version);
 endif
@@ -21,7 +15,12 @@ inc '../mysql.zl';
 inc '../fatal_error.zl';
 
 headers = rqtGetHeaders();
-sess_data = sessGetData(bltStr(&headers['X-Token']));
+request_queries = rqtGetQuery();
+x_token = bltStr(&headers['X-Token']);
+if(!x_token)
+	x_token = bltStr(&request_queries['token']);
+endif
+sess_data = sessGetData(x_token);
 if(bltCount(sess_data) == 0 || !sess_data['uid'])
 	common_json_error('请先登录');
 endif
@@ -34,19 +33,24 @@ fun init_db()
 	return db;
 endfun
 
+fun common_set_response_header()
+	rqtSetResponseHeader("Access-Control-Allow-Origin: *");
+	rqtSetResponseHeader("Access-Control-Allow-Methods: GET,POST,PUT,DELETE");
+	rqtSetResponseHeader("Access-Control-Allow-Headers: *");
+	rqtSetResponseHeader("Access-Control-Max-Age: 10");
+	rqtSetResponseHeader("Content-Type: application/json");
+endfun
+
 fun common_json_success(data = NULL, msg = '', code = 0)
 	retval['code'] = code;
 	retval['msg'] = msg;
 	retval['data'] = data;
+	common_set_response_header();
 	print bltJsonEncode(retval);
 	bltExit();
 endfun
 
 fun common_json_error(msg = '', data = NULL, code = -1)
-	retval['code'] = code;
-	retval['msg'] = msg;
-	retval['data'] = data;
-	print bltJsonEncode(retval);
-	bltExit();
+	common_json_success(data, msg, code);
 endfun
 

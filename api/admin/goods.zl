@@ -7,6 +7,14 @@ class Goods
 		action = querys['act'] ? querys['act'] : 'list';
 		if(action == 'list')
 			self.list();
+		elif(action == 'add')
+			self.add();
+		elif(action == 'info')
+			self.info(bltInt(querys['id']));
+		elif(action == 'edit')
+			self.edit();
+		else
+			common_json_error('无效的请求');
 		endif
 	endfun
 
@@ -33,6 +41,98 @@ class Goods
 				" left join category as c on c.id=g.cid "+ where +
 				" order by id desc limit " + offset + "," + limit);
 		common_json_success(data);
+	endfun
+
+	// 对数据进行预处理
+	fun preProcessData(posts)
+		if(bltCount(posts) > 0)
+			bltStr(&posts['name'], TRUE);
+			bltStr(&posts['thumbnail'], TRUE);
+			bltStr(&posts['keywords'], TRUE);
+			bltStr(&posts['description'], TRUE);
+			bltStr(&posts['content'], TRUE);
+			bltInt(&posts['cid'], TRUE);
+			bltInt(&posts['store_num'], TRUE);
+			bltFloat(&posts['price'], TRUE);
+			bltFloat(&posts['market_price'], TRUE);
+		endif
+	endfun
+
+	// 校验数据
+	fun validate(db, posts, isadd = TRUE)
+		if(!posts['name'])
+			err_msg = '商品名称不能为空';
+		elif(!posts['price'] || !posts['market_price'])
+			err_msg = '必须填写商品价格和市场价格';
+		elif(posts['store_num'] < 0)
+			err_msg = '商品库存不能小于0';
+		elif(!posts['content'])
+			err_msg = '商品详情不能为空';
+		elif(!posts['cid'])
+			err_msg = '请选择有效的分类';
+		elif(!isadd)
+			if(!posts['id'])
+				err_msg = '无效的商品ID';
+			endif
+		endif
+		if(err_msg)
+			common_json_error(err_msg);
+		endif
+	endfun
+
+	// 添加商品
+	fun add()
+		global sess_data;
+		posts = rqtGetBodyAsArray();
+		db = init_db();
+		self.preProcessData(posts);
+		self.validate(db, posts);
+		store_num = posts['store_num'];
+		bltUnset(&posts['store_num']);
+		posts['updated_at'] = posts['created_at'] = bltDate('%Y-%m-%d %H:%M:%S');
+		posts['uid'] = sess_data['uid'];
+		Mysql.StartTransaction(db);
+		Mysql.Insert(db, 'goods', posts);
+		result = Mysql.fetchOne(db, "SELECT LAST_INSERT_ID() as last_id");
+		store['gid'] = result['last_id'];
+		store['num'] = store_num;
+		Mysql.Insert(db, 'goods_store', store);
+		Mysql.Commit(db);
+		common_json_success(NULL, '添加成功');
+	endfun
+
+	// 获取商品信息
+	fun info(id)
+		if(!id)
+			common_json_error('无效的商品ID');
+		endif
+		db = init_db();
+		data['goods'] = Mysql.fetchOne(db, "select g.*, gs.num as store_num from goods g inner join goods_store gs on g.id = gs.gid where g.id='"+id+"'");
+		if(!bltCount(data['goods']))
+			common_json_error('无效的商品ID');
+		endif
+		common_json_success(data);
+	endfun
+
+	// 编辑商品
+	fun edit()
+		global querys;
+		posts = rqtGetBodyAsArray();
+		db = init_db();
+		self.preProcessData(posts);
+		id = bltInt(posts['id']);
+		Mysql.StartTransaction(db);
+		// 通过事务和FOR UPDATE语句对商品库存表中gid所对应的记录行加行锁(注意，这里的gid在创建表结构时就设置了索引，所以可以触发InnoDB的行锁，如果gid不是索引，则会触发表锁，将全表都锁住)
+		// 通过加锁以保证商品库存操作的原子性，防止并发操作可能导致的错误的商品库存
+		store = Mysql.fetchOne(db, "select gid,num from goods_store where gid = '" + id + "' FOR UPDATE");
+		self.validate(db, posts, FALSE);
+		store['num'] = posts['store_num'];
+		bltUnset(&posts['store_num']);
+		posts['updated_at'] = bltDate('%Y-%m-%d %H:%M:%S');
+		Mysql.Update(db, 'goods', posts, 'id=' + id);
+		Mysql.Update(db, 'goods_store', store, 'gid=' + id);
+		Mysql.Commit(db);
+		common_json_success(NULL, '编辑成功');
 	endfun
 endclass
 
