@@ -9,3 +9,30 @@ export function getList(data)
     data: qs.stringify(data)
   })
 }
+
+export function addGoods(data)
+{
+  return request({
+    url: '/admin/goods.zl?act=add',
+    method: 'post',
+    data: qs.stringify(data)
+  })
+}
+
+export function getInfo(params)
+{
+  return request({
+    url: '/admin/goods.zl?act=info',
+    method: 'post',
+    params
+  })
+}
+
+export function editGoods(data)
+{
+  return request({
+    url: '/admin/goods.zl?act=edit',
+    method: 'post',
+    data: qs.stringify(data)
+  })
+}
