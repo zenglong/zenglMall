@@ -1,42 +1,40 @@
 <template>
   <div class="app-container">
-    <div class="search-header">
+    <div class="search-header clearfix">
+      <el-input class="search-item search-input" placeholder="订单号" v-model="sform.oid" clearable></el-input>
       <el-input class="search-item search-input" placeholder="商品名" v-model="sform.name" clearable></el-input>
-      <el-cascader :options="categories" 
-        class="search-item search-cid"
-        v-model="sform.cid"
-        clearable
-        :props="{ checkStrictly: true, value: 'id', label: 'name' }"
-        :loading="category_loading"></el-cascader>
+      <el-input class="search-item search-input" placeholder="用户名" v-model="sform.username" clearable></el-input>
+      <el-select class="search-item search-select" v-model="sform.status" placeholder="订单状态" clearable>
+        <el-option
+          v-for="item in all_order_status"
+          :key="item.value"
+          :label="item.name"
+          :value="item.value">
+        </el-option>
+      </el-select>
       <el-button @click="onSearchSubmit()" type="primary" round>搜索</el-button>
-      <el-button type="primary" @click="addGoods()" round class="add-button">添加商品</el-button>
     </div>
 
     <el-table ref="multipleTable1" border :data="list_data" style="width: 100%; margin-top: 20px; margin-left: 0px"
       v-loading="tabLoading" :fit="true">
-      <el-table-column prop="id" label="ID" width="80" align="center"></el-table-column>
+      <el-table-column prop="oid" label="订单号" width="180" align="center"></el-table-column>
       <el-table-column prop="thumbnail" label="缩略图" width="160" align="center">
         <template slot-scope="scope">
           <img :src="scope.row.thumbnail" width="130" height="130" />
         </template>
       </el-table-column>
       <el-table-column prop="name" label="商品名" min-width="170" align="center"></el-table-column>
-      <el-table-column prop="name" label="价格" min-width="90" align="center">
+      <el-table-column prop="username" label="买家用户名" min-width="170" align="center"></el-table-column>
+      <el-table-column prop="amount" label="订单金额" min-width="170" align="center"></el-table-column>
+      <el-table-column prop="num" label="订单数量" min-width="170" align="center"></el-table-column>
+      <el-table-column prop="status" label="订单状态" width="160" align="center">
         <template slot-scope="scope">
-          <span>{{scope.row.price}}</span><br/>
-          <span title="市场价">({{scope.row.market_price}})</span>
+          {{get_status_name(scope.row.status) }}
         </template>
       </el-table-column>
-      <el-table-column prop="store_num" label="库存" min-width="90" align="center"></el-table-column>
-      <el-table-column prop="uid" label="用户ID" min-width="90" align="center"></el-table-column>
-      <el-table-column prop="cname" label="分类名" min-width="90" align="center"></el-table-column>
-      <el-table-column prop="created_at" label="创建时间" width="100" align="center"></el-table-column>
-      <el-table-column prop="updated_at" label="更新时间" width="100" align="center"></el-table-column>
-      <el-table-column label="操作" min-width="150" align="center">
+      <el-table-column fixed="right" label="操作" min-width="80" align="center">
         <template slot-scope="scope">
-          <i class="el-icon-view operate-btn" title="查看"></i>
-          <i class="el-icon-edit operate-btn" @click="editGoods(scope.row.id)" title="编辑"></i>
-          <i class="el-icon-delete operate-btn" @click="deleteGoods(scope.row.id, scope.row.name)" title="删除"></i>
+          <i class="el-icon-view operate-btn" title="查看订单详情" @click="viewOrder(scope.row.id)"></i>
         </template>
       </el-table-column>
     </el-table>
@@ -55,8 +53,8 @@
 </template>
 
 <script>
-import { getList, deleteGoods } from '@/api/goods'
-import { getList as getCategoryList } from '@/api/category'
+import { getList } from '@/api/order'
+import { get_all_order_status, get_order_status_name } from '@/assets/js/common'
 
 export default {
   data() {
@@ -64,15 +62,16 @@ export default {
       base_url: '',
       img_base_url: '',
       tabLoading: false,
-      category_loading: false,
-      categories: [],
       currentPage: 1,
       pageSize: 10,
       total: 0,
       list_data: [],
+      all_order_status: [],
       sform: {
+        oid: '',
         name: '',
-        cid: null,
+        username: '',
+        status: '',
       }
     }
   },
@@ -83,34 +82,15 @@ export default {
     if (last_char == '/') {
       this.img_base_url = this.base_url.substr(0, this.base_url.length-1)
     }
+    this.all_order_status = get_all_order_status()
     this.onSearchSubmit(1, true)
-    this.getCategoryList()
   },
   methods: {
-    deleteGoods(id, name) {
-      this.$confirm('删除['+name+']商品吗?', '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }).then(() => {
-        this.tabLoading = true
-        deleteGoods({id}).then(response => {
-          this.$message({
-            message: response.msg,
-            type: 'success'
-          });
-          this.onSearchSubmit(this.currentPage)
-        }).catch(error => {
-          this.tabLoading = false
-        })
-      }).catch(() => {
-      })
+    viewOrder(id) {
+      this.$router.push('/order/view?id='+id)
     },
-    editGoods(id) {
-      this.$router.replace('/goods/addGoods?id='+id)
-    },
-    addGoods() {
-      this.$router.replace('/goods/addGoods')
+    get_status_name(value) {
+      return get_order_status_name(this.all_order_status, value)
     },
     handleSizeChange(val) {
       this.currentPage = 1
@@ -127,16 +107,14 @@ export default {
     },
     loadCustomerData (page, pageSize, is_mounted = false) {
       this.tabLoading = true
-      let cid = null
-      if(this.sform.cid && this.sform.cid.length > 0) {
-        cid = this.sform.cid[this.sform.cid.length - 1]
-      }
       getList({
         page, 
         pageSize, 
         is_mounted,
+        oid: this.sform.oid,
         name: this.sform.name,
-        cid: cid
+        username: this.sform.username,
+        status: this.sform.status,
       }).then(response => {
         this.list_data = response.data.list_data
         for(let i=0;i < this.list_data.length;i++) {
@@ -151,15 +129,6 @@ export default {
         this.tabLoading = false
       })
     },
-    getCategoryList() {
-      this.category_loading = true
-      getCategoryList().then(response => {
-        this.categories = response.data.categories
-        this.category_loading = false
-      }).catch(error => {
-        this.category_loading = false
-      })
-    }
   }
 }
 </script>
@@ -175,12 +144,12 @@ export default {
 }
 .operate-btn {
  cursor: pointer;
- padding-right: 15px;
 }
-::v-deep .el-icon-view::before, .el-icon-edit::before, .el-icon-delete::before {
+::v-deep .el-icon-view::before{
   font-size: 20px;
   color: #337ab7;
 }
+
 .search-item {
   width: 220px;
   float:left;
@@ -195,13 +164,10 @@ export default {
 .search-input {
   margin-right: 15px;
 }
-.search-cid {
+.search-select {
   margin-right: 15px;
-}
-.search-cid.el-cascader {
-  line-height: 35px;
-}
-.add-button {
-  float: right;
+  ::v-deep .el-input__icon {
+    line-height: 15px;
+  }
 }
 </style>

@@ -36,3 +36,12 @@ export function editGoods(data)
     data: qs.stringify(data)
   })
 }
+
+export function deleteGoods(params)
+{
+  return request({
+    url: '/admin/goods.zl?act=delete',
+    method: 'get',
+    params
+  })
+}

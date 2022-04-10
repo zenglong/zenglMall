@@ -24,6 +24,8 @@ const allowedRoutes = [
   'category/index',
   'goods/index',
   'goods/addGoods',
+  'order/index',
+  'order/view',
 
   'menu/index',
   'menu/AddMenu',
@@ -106,17 +108,17 @@ router.beforeEach(async(to, from, next) => {
         next()
       } else if (!getinfo_data) {
         try {
-          console.log('permission get info...')
+          // console.log('permission get info...')
 
           const { routes } = await store.dispatch('user/getInfo')
 
           let newroutes = []
           addNewRoutes(newroutes, routes)
 
-          console.log('newrouters:', newroutes)
+          // console.log('newrouters:', newroutes)
           router.addRoutes(newroutes)
           router.options.routes.push(...newroutes)
-          console.log('router.options.routes:', router.options.routes)
+          // console.log('router.options.routes:', router.options.routes)
           await store.dispatch('user/setRoutes', newroutes)
 
           getinfo_data = true
@@ -152,7 +154,7 @@ router.beforeEach(async(to, from, next) => {
 })
 
 router.afterEach(() => {
-  console.log('router.afterEach')
+  // console.log('router.afterEach')
   // finish progress bar
   NProgress.done()
 })
