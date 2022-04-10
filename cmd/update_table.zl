@@ -56,6 +56,8 @@ elif(bltVersionCompare(update_version, '0.2.0') <= 0)
 	print 'create table admin_opt_log';
 	Mysql.Exec(db, "ALTER TABLE category ADD COLUMN `delete_time` datetime NULL DEFAULT NULL COMMENT '删除时间'");
 	print 'add column delete_time to category table';
+	Mysql.Exec(db, "ALTER TABLE goods ADD COLUMN `delete_time` datetime NULL DEFAULT NULL COMMENT '删除时间'");
+	print 'add column delete_time to goods table';
 endif
 
 bltWriteFile(update_lock_file, config['version']);

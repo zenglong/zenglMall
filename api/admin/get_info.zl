@@ -22,6 +22,8 @@ routes[lastidx, 'children', 1] = get_route(id++, '前台用户', 'front/users');
 routes[] = get_route(id++, '分类列表', 'category/index');
 routes[] = get_route(id++, '商品列表', 'goods/index');
 routes[] = get_route(id++, '添加商品', 'goods/addGoods', TRUE);
+routes[] = get_route(id++, '订单列表', 'order/index');
+routes[] = get_route(id++, '订单详情', 'order/view', TRUE);
 data['routes'] = routes;
 common_json_success(data);
 

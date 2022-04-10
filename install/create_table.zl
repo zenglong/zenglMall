@@ -65,6 +65,7 @@ if(mysqlQuery(con, "CREATE TABLE goods(
 	content mediumtext NOT NULL COMMENT '商品内容',
 	`created_at` timestamp NULL DEFAULT NULL COMMENT '创建时间',
  	`updated_at` timestamp NULL DEFAULT NULL COMMENT '更新时间',
+	`delete_time` datetime NULL DEFAULT NULL COMMENT '删除时间',
 	PRIMARY KEY (id)
 	) ENGINE=InnoDB DEFAULT CHARSET utf8 COLLATE utf8_general_ci COMMENT='商品表'"))
 	finish_with_error(con);

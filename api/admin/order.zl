@@ -1,0 +1,60 @@
+inc 'common.zl';
+
+Order.action(rqtGetQuery());
+
+class Order
+	fun action(querys)
+		action = querys['act'] ? querys['act'] : 'list';
+		if(action == 'list')
+			self.list();
+		elif(action == 'view')
+			self.view(bltInt(querys['id']));
+		else
+			common_json_error('无效的请求');
+		endif
+	endfun
+
+	// 订单列表
+	fun list()
+		db = init_db();
+		posts = rqtGetBodyAsArray();
+		where = " where 1 ";
+		oid = bltStr(&posts['oid']);
+		name = bltStr(&posts['name']);
+		username = bltStr(&posts['username']);
+		status = bltStr(&posts['status']);
+		// 根据订单号搜索订单列表
+		if(oid)
+			where += ' and o.oid like "%' + Mysql.Escape(db, oid) + '%"';
+		endif
+		// 根据商品名称搜索订单列表
+		if(name)
+			where += ' and o.name like "%' + Mysql.Escape(db, name) + '%"';
+		endif
+		// 根据下单用户的用户名搜索订单列表
+		if(username)
+			where += ' and u.username like "%' + Mysql.Escape(db, username) + '%"';
+		endif
+		// 根据订单状态搜索订单列表
+		if(status)
+			where += ' and o.status = "' + Mysql.Escape(db, status) + '"';
+		endif
+		tmp = Mysql.fetchOne(db, "select count(1) as cnt from orders as o inner join users as u on u.id=o.uid " + where);
+		data['total'] = bltInt(tmp['cnt']);
+		page = bltInt(posts['page']);
+		pageSize = bltInt(posts['pageSize']);
+		limit = pageSize <= 0 ? 10 : pageSize;
+		offset = page <= 0 ? 0 : (page - 1) * limit;
+		data['list_data'] = Mysql.fetchAll(db, "select o.id,o.oid,o.name,o.thumbnail,o.amount,o.num,o.status,o.uid,u.username from orders as o inner join users as u on u.id=o.uid " + 
+				where + " order by o.id desc limit " + offset + "," + limit);
+		common_json_success(data);
+	endfun
+
+	// 订单详情
+	fun view(id)
+		db = init_db();
+		data['info'] = Mysql.fetchOne(db, "select * from orders where id = " + id);
+		common_json_success(data);
+	endfun
+endclass
+

@@ -13,6 +13,8 @@ class Goods
 			self.info(bltInt(querys['id']));
 		elif(action == 'edit')
 			self.edit();
+		elif(action == 'delete')
+			self.delete(bltInt(querys['id']));
 		else
 			common_json_error('无效的请求');
 		endif
@@ -21,7 +23,7 @@ class Goods
 	fun list()
 		db = init_db();
 		posts = rqtGetBodyAsArray();
-		where = " where 1 ";
+		where = " where g.delete_time is null ";
 		name = bltStr(&posts['name']);
 		if(name)
 			where += ' and g.name like "%' + Mysql.Escape(db, name) + '%"';
@@ -107,7 +109,7 @@ class Goods
 			common_json_error('无效的商品ID');
 		endif
 		db = init_db();
-		data['goods'] = Mysql.fetchOne(db, "select g.*, gs.num as store_num from goods g inner join goods_store gs on g.id = gs.gid where g.id='"+id+"'");
+		data['goods'] = Mysql.fetchOne(db, "select g.*, gs.num as store_num from goods g inner join goods_store gs on g.id = gs.gid where g.delete_time is null and g.id='"+id+"'");
 		if(!bltCount(data['goods']))
 			common_json_error('无效的商品ID');
 		endif
@@ -133,6 +135,21 @@ class Goods
 		Mysql.Update(db, 'goods_store', store, 'gid=' + id);
 		Mysql.Commit(db);
 		common_json_success(NULL, '编辑成功');
+	endfun
+
+	// 删除商品
+	fun delete(id)
+		if(!id)
+			common_json_error('无效的商品ID');
+		endif
+		db = init_db();
+		goods = Mysql.fetchOne(db, "select * from goods where id=" + id);
+		if(!bltCount(goods))
+			common_json_error('商品不存在');
+		endif
+		save['delete_time'] = bltDate("%Y-%m-%d %H:%M:%S");
+		Mysql.Update(db, 'goods', save, 'id=' + id);
+		common_json_success(NULL, '删除成功');
 	endfun
 endclass
 
