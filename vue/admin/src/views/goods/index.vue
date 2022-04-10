@@ -17,7 +17,7 @@
       <el-table-column prop="id" label="ID" width="80" align="center"></el-table-column>
       <el-table-column prop="thumbnail" label="缩略图" width="160" align="center">
         <template slot-scope="scope">
-          <img :src="base_url + '' + (scope.row.thumbnail ? scope.row.thumbnail : 'assets/image/defaultpic.jpg')" width="130" height="130" />
+          <img :src="scope.row.thumbnail" width="130" height="130" />
         </template>
       </el-table-column>
       <el-table-column prop="name" label="商品名" min-width="170" align="center"></el-table-column>
@@ -33,9 +33,9 @@
       <el-table-column prop="created_at" label="创建时间" width="100" align="center"></el-table-column>
       <el-table-column prop="updated_at" label="更新时间" width="100" align="center"></el-table-column>
       <el-table-column label="操作" min-width="150" align="center">
-        <template>
+        <template slot-scope="scope">
           <i class="el-icon-view operate-btn" title="查看"></i>
-          <i class="el-icon-edit operate-btn" title="编辑"></i>
+          <i class="el-icon-edit operate-btn" @click="editGoods(scope.row.id)" title="编辑"></i>
           <i class="el-icon-delete operate-btn" title="删除"></i>
         </template>
       </el-table-column>
@@ -62,6 +62,7 @@ export default {
   data() {
     return {
       base_url: '',
+      img_base_url: '',
       tabLoading: false,
       category_loading: false,
       categories: [],
@@ -77,10 +78,18 @@ export default {
   },
   mounted() {
     this.base_url = process.env.VUE_APP_API_BASE_URL
+    let last_char = this.base_url.charAt(this.base_url.length - 1)
+    this.img_base_url = this.base_url
+    if (last_char == '/') {
+      this.img_base_url = this.base_url.substr(0, this.base_url.length-1)
+    }
     this.onSearchSubmit(1, true)
     this.getCategoryList()
   },
   methods: {
+    editGoods(id) {
+      this.$router.replace('/goods/addGoods?id='+id)
+    },
     addGoods() {
       this.$router.replace('/goods/addGoods')
     },
@@ -111,6 +120,12 @@ export default {
         cid: cid
       }).then(response => {
         this.list_data = response.data.list_data
+        for(let i=0;i < this.list_data.length;i++) {
+          if(this.list_data[i].thumbnail.indexOf("http://") == -1) {
+            this.list_data[i].thumbnail = this.img_base_url + (this.list_data[i].thumbnail ? this.list_data[i].thumbnail : 
+                '/assets/image/defaultpic.jpg')
+          }
+        }
         this.total = response.data.total
         this.tabLoading = false
       }).catch(error => {
