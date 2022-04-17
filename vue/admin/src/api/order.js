@@ -18,3 +18,21 @@ export function getInfo(params)
     params
   })
 }
+
+export function modifySellerRemark(data)
+{
+  return request({
+    url: '/admin/order.zl?act=modify_seller_remark',
+    method: 'post',
+    data: qs.stringify(data)
+  })
+}
+
+export function setSendStatus(data)
+{
+  return request({
+    url: '/admin/order.zl?act=set_send_status',
+    method: 'post',
+    data: qs.stringify(data)
+  })
+}

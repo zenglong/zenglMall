@@ -49,22 +49,37 @@
       :total="total"
       style="margin-top:10px;margin-left:15px">
     </el-pagination>
+
+    <el-drawer
+      title="订单详情"
+      :wrapperClosable="false"
+      :visible.sync="showOrderInfo"
+      direction="rtl"
+      size="60%">
+      <order-view v-if="showOrderInfo" :order_id="order_id" :updateCallback="updateCallback"></order-view>
+    </el-drawer>
   </div>
 </template>
 
 <script>
 import { getList } from '@/api/order'
 import { get_all_order_status, get_order_status_name } from '@/assets/js/common'
+import orderView from './view'
 
 export default {
+  components: {
+    orderView,
+  },
   data() {
     return {
       base_url: '',
       img_base_url: '',
       tabLoading: false,
+      showOrderInfo: false,
       currentPage: 1,
       pageSize: 10,
       total: 0,
+      order_id: 0,
       list_data: [],
       all_order_status: [],
       sform: {
@@ -86,8 +101,12 @@ export default {
     this.onSearchSubmit(1, true)
   },
   methods: {
+    updateCallback() {
+      this.onSearchSubmit(this.currentPage)
+    },
     viewOrder(id) {
-      this.$router.push('/order/view?id='+id)
+      this.order_id = id
+      this.showOrderInfo = true
     },
     get_status_name(value) {
       return get_order_status_name(this.all_order_status, value)

@@ -56,20 +56,43 @@
       <el-form-item label="商家备注">
         <div id="div1"></div>
       </el-form-item>
+      <div class="save-botton-wrapper">
+        <el-button type="primary" round class="modify-seller-remark" @click="modify_seller_remark()" :loading="save_remark_loading">
+          设置备注
+        </el-button>
+        <el-button type="primary" round class="set-send-status" @click="set_send_status()" 
+          v-if="info.status == 'WAIT_SELLER_SEND'"
+          :loading="set_status_loading">
+          设置成待收货状态
+        </el-button>
+        <el-button type="default" class="return-to-list" round @click="returnToList()">返回</el-button>
+      </div>
     </el-form>
   </div>
 </template>
 
 <script>
-import { getInfo } from '@/api/order'
+import { getInfo, modifySellerRemark, setSendStatus } from '@/api/order'
 import { getImagePath, get_order_status_name } from '@/assets/js/common'
 import { mapGetters } from 'vuex';
 import E from "wangeditor"
 
 export default {
+  props: {
+    order_id: {
+      type: Number,
+      default: 0,
+    },
+    updateCallback: {
+      type: Function,
+      default: null,
+    }
+  },
   data() {
     return {
       loading: false,
+      save_remark_loading: false,
+      set_status_loading: false,
       VUE_APP_API_BASE_URL: '',
       upload_action: '',
       editor: null,
@@ -96,7 +119,7 @@ export default {
     editor.config.uploadImgHooks = {
       customInsert: function(insertImgFn, result) {
         // result 即服务端返回的接口
-        console.log('customInsert', result)
+        // console.log('customInsert', result)
 
         if(result.msg != '') {
           that.$message.error(result.msg);
@@ -112,12 +135,50 @@ export default {
     editor.config.uploadImgServer = this.VUE_APP_API_BASE_URL + '/admin/upload.zl?act=ckImage&token=' + this.token
     editor.create()
     this.editor = editor
-    let order_id = this.$route.query.id
-    if(order_id > 0) {
-      this.getInfo(order_id)
+    if(this.order_id > 0) {
+      this.getInfo(this.order_id)
     }
   },
   methods: {
+    returnToList() {
+      this.$parent.$parent.showOrderInfo = false
+    },
+    modify_seller_remark() {
+      this.save_remark_loading = true
+      let seller_remark = this.editor.txt.html()
+      modifySellerRemark({id: this.order_id, seller_remark: seller_remark}).then(response => {
+        this.$message({
+          message: response.msg,
+          type: 'success'
+        })
+        this.save_remark_loading = false
+        this.getInfo(this.order_id)
+      }).catch(error => {
+        this.save_remark_loading = false
+      })
+    },
+    set_send_status() {
+      this.$confirm('是否将订单设置为待收货状态?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        this.set_status_loading = true
+        setSendStatus({id: this.order_id}).then(response => {
+          this.$message({
+            message: response.msg,
+            type: 'success'
+          })
+          this.set_status_loading = false
+          this.getInfo(this.order_id)
+          if(this.updateCallback !== null) {
+            this.updateCallback()
+          }
+        }).catch(error => {
+          this.set_status_loading = false
+        })
+      }).catch(() => {})
+    },
     get_order_status_name(status) {
       return get_order_status_name(null, status)
     },
@@ -143,5 +204,14 @@ export default {
   margin-top: 35px;
   padding-right: 15px;
   padding-bottom: 50px;
+}
+.modify-seller-remark {
+  margin-left: 75px;
+}
+.set-send-status {
+  margin-left: 30px;
+}
+.return-to-list {
+  margin-left: 30px;
 }
 </style>
