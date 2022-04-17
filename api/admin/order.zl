@@ -9,6 +9,10 @@ class Order
 			self.list();
 		elif(action == 'view')
 			self.view(bltInt(querys['id']));
+		elif(action == 'modify_seller_remark')
+			self.modifySellerRemark();
+		elif(action == 'set_send_status')
+			self.setSendStatus();
 		else
 			common_json_error('无效的请求');
 		endif
@@ -55,6 +59,33 @@ class Order
 		db = init_db();
 		data['info'] = Mysql.fetchOne(db, "select * from orders where id = " + id);
 		common_json_success(data);
+	endfun
+
+	// 设置订单的商家备注信息
+	fun modifySellerRemark()
+		posts = rqtGetBodyAsArray();
+		data['seller_remark'] = bltStr(posts['seller_remark']);
+		data['update_time'] = bltDate("%Y-%m-%d %H:%M:%S");
+		Mysql.Update(init_db(), 'orders', data, 'id=' + bltInt(posts['id']));
+		common_json_success(NULL, "设置成功");
+	endfun
+
+	// 将订单设置为待收货状态(也就是已发货状态)
+	fun setSendStatus()
+		posts = rqtGetBodyAsArray();
+		id = bltInt(posts['id']);
+		db = init_db();
+		order_info = Mysql.fetchOne(db, "select * from orders where id = " + id);
+		if(!bltCount(order_info))
+			common_json_error('订单信息不存在');
+		endif
+		if(order_info['status'] != 'WAIT_SELLER_SEND')
+			common_json_error('只能将待发货的订单设置为待收货状态');
+		endif
+		data['status'] = 'WAIT_BUYER_CONFIRM';
+		data['send_time'] = data['update_time'] = bltDate("%Y-%m-%d %H:%M:%S");
+		Mysql.Update(db, 'orders', data, 'id=' + id);
+		common_json_success(NULL, "设置成功");
 	endfun
 endclass
 
