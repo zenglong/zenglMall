@@ -34,7 +34,6 @@
       <el-table-column prop="updated_at" label="更新时间" width="100" align="center"></el-table-column>
       <el-table-column label="操作" min-width="150" align="center">
         <template slot-scope="scope">
-          <i class="el-icon-view operate-btn" title="查看"></i>
           <i class="el-icon-edit operate-btn" @click="editGoods(scope.row.id)" title="编辑"></i>
           <i class="el-icon-delete operate-btn" @click="deleteGoods(scope.row.id, scope.row.name)" title="删除"></i>
         </template>
@@ -77,6 +76,19 @@ export default {
     }
   },
   mounted() {
+    if(this.$route.query.page) {
+      this.page = parseInt(this.$route.query.page)
+    }
+    if(this.$route.query.pageSize) {
+      this.pageSize = parseInt(this.$route.query.pageSize)
+    }
+    if(this.$route.query.name) {
+      this.sform.name = this.$route.query.name
+    }
+    if(this.$route.query.cid) {
+      this.sform.cid = parseInt(this.$route.query.cid)
+    }
+
     this.base_url = process.env.VUE_APP_API_BASE_URL
     let last_char = this.base_url.charAt(this.base_url.length - 1)
     this.img_base_url = this.base_url
@@ -107,10 +119,10 @@ export default {
       })
     },
     editGoods(id) {
-      this.$router.replace('/goods/addGoods?id='+id)
+      this.$router.push('/goods/addGoods?id='+id)
     },
     addGoods() {
-      this.$router.replace('/goods/addGoods')
+      this.$router.push('/goods/addGoods')
     },
     handleSizeChange(val) {
       this.currentPage = 1
@@ -125,11 +137,42 @@ export default {
       this.currentPage = currentPage
       this.loadCustomerData(this.currentPage, this.pageSize, is_mounted)
     },
+    setParam(replace_url, param) {
+      if(replace_url) {
+        replace_url += '&' + param
+      }
+      else {
+        replace_url += '?' + param
+      }
+      return replace_url
+    },
     loadCustomerData (page, pageSize, is_mounted = false) {
       this.tabLoading = true
       let cid = null
-      if(this.sform.cid && this.sform.cid.length > 0) {
-        cid = this.sform.cid[this.sform.cid.length - 1]
+      if(this.sform.cid instanceof Array) {
+        if(this.sform.cid && this.sform.cid.length > 0) {
+          cid = this.sform.cid[this.sform.cid.length - 1]
+        }
+      }
+      else {
+        cid = this.sform.cid
+      }
+      let replace_url = ''
+      if(parseInt(page) > 0) {
+        replace_url = this.setParam(replace_url, 'page='+parseInt(page))
+      }
+      if(parseInt(pageSize) > 0) {
+        replace_url = this.setParam(replace_url, 'pageSize='+parseInt(pageSize))
+      }
+      if(parseInt(cid) > 0) {
+        replace_url = this.setParam(replace_url, 'cid='+parseInt(cid))
+      }
+      if(this.sform.name) {
+        replace_url = this.setParam(replace_url, 'name='+encodeURIComponent(this.sform.name))
+      }
+      // console.log(this.$route.fullPath, replace_url)
+      if(this.$route.fullPath != '/goods/index' + replace_url) {
+        this.$router.replace('/goods/index' + replace_url)
       }
       getList({
         page, 

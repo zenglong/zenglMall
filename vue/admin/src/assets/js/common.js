@@ -29,5 +29,9 @@ if (last_char == '/') {
 }
 
 export function getImagePath(image) {
-  return img_base_url + (image ? image : '/assets/image/defaultpic.jpg')
+  let returl = image ? image : '/assets/image/defaultpic.jpg'
+  if(returl.indexOf("http://") == -1 && returl.indexOf("https://") == -1) {
+    returl = img_base_url + returl
+  }
+  return returl
 }

@@ -137,7 +137,7 @@ export default {
       }).then(response => {
         this.list_data = response.data.list_data
         for(let i=0;i < this.list_data.length;i++) {
-          if(this.list_data[i].thumbnail.indexOf("http://") == -1) {
+          if(this.list_data[i].thumbnail.indexOf("http://") == -1 && this.list_data[i].thumbnail.indexOf("https://") == -1) {
             this.list_data[i].thumbnail = this.img_base_url + (this.list_data[i].thumbnail ? this.list_data[i].thumbnail : 
                 '/assets/image/defaultpic.jpg')
           }

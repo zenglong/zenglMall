@@ -22,7 +22,7 @@
           :on-success="handleThumbSuccess"
           :on-error = "handleThumbError"
           :before-upload="beforeThumbUpload">
-          <img v-if="form.thumbnail" :src="form.thumbnail" class="thumb">
+          <img v-if="form.thumbnail" :src="getImagePath(form.thumbnail)" class="thumb">
           <i v-else class="el-icon-plus thumb-uploader-icon"></i>
         </el-upload>
       </el-form-item>
@@ -54,6 +54,7 @@
 <script>
 import { getList as getCategoryList } from '@/api/category'
 import { addGoods, getInfo, editGoods } from '@/api/goods'
+import { getImagePath } from '@/assets/js/common'
 import { mapGetters } from 'vuex';
 import E from "wangeditor"
 
@@ -126,6 +127,9 @@ export default {
     }
   },
   methods: {
+    getImagePath(image) {
+      return getImagePath(image)
+    },
     getInfo(goods_id) {
       this.loading = true
       getInfo({id: goods_id}).then(response => {
@@ -150,7 +154,8 @@ export default {
             type: 'success'
           })
           this.save_loading = false
-          this.$router.replace('/goods/index')
+          // this.$router.replace('/goods/index')
+          this.$router.go(-1)
         }).catch(error => {
           this.save_loading = false
         })
@@ -161,7 +166,8 @@ export default {
             type: 'success'
           })
           this.save_loading = false
-          this.$router.replace('/goods/index')
+          // this.$router.replace('/goods/index')
+          this.$router.go(-1)
         }).catch(error => {
           this.save_loading = false
         })
@@ -191,7 +197,8 @@ export default {
       return isLt2M;
     },
     returnToList() {
-      this.$router.replace('/goods/index')
+      // this.$router.replace('/goods/index')
+      this.$router.go(-1)
     },
     getCategoryList() {
       this.category_loading = true
