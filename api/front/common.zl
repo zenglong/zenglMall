@@ -1,0 +1,51 @@
+use builtin, request, mysql, session;
+
+inc '../def.zl';
+
+// 通过bltVersionCompare模块函数检测zenglServer的版本号，如果版本号不符合最低版本要求，则直接让脚本退出运行
+zls_version = bltGetZenglServerVersion();
+zls_version_str = zls_version[0] + '.' + zls_version[1] + '.' + zls_version[2];
+zls_min_version = 'v0.25.1';
+if(bltVersionCompare(zls_version_str, zls_min_version) < 0)
+	common_json_error('zenglServer version (' + zls_version_str + ') < ' + zls_min_version);
+endif
+
+inc '../config.zl';
+inc '../mysql.zl';
+inc '../fatal_error.zl';
+
+// 初始化数据库连接
+fun init_db()
+	global config;
+	db = bltArray();
+	Mysql.init(db, config);
+	return db;
+endfun
+
+fun common_set_response_header()
+	rqtSetResponseHeader("Access-Control-Allow-Origin: *");
+	rqtSetResponseHeader("Access-Control-Allow-Methods: GET,POST,PUT,DELETE");
+	rqtSetResponseHeader("Access-Control-Allow-Headers: *");
+	rqtSetResponseHeader("Access-Control-Max-Age: 10");
+	rqtSetResponseHeader("Content-Type: application/json");
+endfun
+
+fun common_json_success(data = NULL, msg = '', code = 0)
+	retval['code'] = code;
+	retval['msg'] = msg;
+	retval['data'] = data;
+	common_set_response_header();
+	print bltJsonEncode(retval);
+	bltExit();
+endfun
+
+fun common_check_post(posts)
+	if(bltStr(posts['is_post']) != 'yes')
+		common_json_error('invalid method');
+	endif
+endfun
+
+fun common_json_error(msg = '', data = NULL, code = -1)
+	common_json_success(data, msg, code);
+endfun
+

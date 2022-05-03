@@ -1,0 +1,38 @@
+inc 'common.zl';
+inc 'category_base.zl';
+
+Category.action(rqtGetQuery());
+
+class Category
+	fun action(querys)
+		action = querys['act'] ? querys['act'] : 'treeList';
+		common_check_post(rqtGetBodyAsArray());
+		if(action == 'treeList')
+			self.treeList();
+		else
+			common_json_error('无效的请求');
+		endif
+	endfun
+
+	// 返回分类树
+	fun treeList(field = "")
+		db = CategoryBase.initDB();
+		categories = CategoryBase.getListByPid(db, -1, field);
+		roots = bltArray();
+		for(i=0;bltIterArray(categories,&i,&child);)
+			if(!child['pid'])
+				roots[] = child;
+				continue;
+			endif
+			for(j=0;bltIterArray(categories,&j,&parent);)
+				if(child['pid'] == parent['id'])
+					parent['children', bltCount(parent['children'])] = child;
+					break;
+				endif
+			endfor
+		endfor
+		data['categories'] = roots;
+		common_json_success(data);
+	endfun
+endclass
+

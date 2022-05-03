@@ -1,0 +1,53 @@
+inc 'common.zl';
+inc 'base.zl';
+
+// 商品列表页面默认显示的商品数量，以及异步加载更多商品时，需要加载的商品数量
+def PAGE_NUM 5;
+
+Goods.action(rqtGetQuery());
+
+class Goods
+	fun action(querys)
+		action = querys['act'] ? querys['act'] : 'list';
+		if(action == 'list')
+			self.list();
+		elif(action == 'info')
+			self.info();
+		else
+			common_json_error('无效的请求');
+		endif
+	endfun
+
+	// 商品列表
+	fun list()
+		posts = rqtGetBodyAsArray();
+		page = bltInt(posts['page']);
+		cid = bltInt(posts['cid']);
+		if(cid <= 0)
+			common_json_error('invalid cid');
+		endif
+		if(page < 1)
+			page = 1;
+		endif
+		offset = (page - 1) * PAGE_NUM;
+		db = init_db();
+		data['goods_list'] = Base.goodsListByCid(db, cid, offset, PAGE_NUM);
+		data['total'] = Base.goodsCountByCid(db, cid, offset, PAGE_NUM);
+		common_json_success(data);
+	endfun
+
+	// 商品详情页面
+	fun info()
+		posts = rqtGetBodyAsArray();
+		gid = bltInt(posts['gid']);
+		if(gid <= 0)
+			common_json_error('invalid gid');
+		endif
+		db = init_db();
+		// 根据商品ID，获取商品的名称，价格，缩略图，商品的详细介绍等信息
+		data['goods_info'] = Mysql.fetchOne(db, "select g.id,g.name,g.thumbnail,g.price,g.market_price,g.keywords,g.description,g.content,g.cid,gs.num as store_num from goods g "+
+				" left join goods_store gs on gs.gid = g.id where g.id=" + gid);
+		common_json_success(data);
+	endfun
+endclass
+
