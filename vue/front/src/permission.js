@@ -18,7 +18,7 @@ export function getPageTitle(pageTitle) {
 
 NProgress.configure({ showSpinner: false }) // NProgress Configuration
 
-const whiteList = ['/admin/login'] // no redirect whitelist
+const whiteList = ['/', '/login', '/goods/list', '/goods/info'] // no redirect whitelist
 
 let getinfo_data = false
 
@@ -29,8 +29,21 @@ router.beforeEach(async(to, from, next) => {
 
   document.title = getPageTitle(to.meta.title)
 
-  next()
-  NProgress.done()
+  const hasToken = getToken()
+
+  if (hasToken) {
+    next()
+  } else {
+    /* has no token*/
+    if (whiteList.indexOf(to.path) !== -1) {
+      // in the free login whitelist, go directly
+      next()
+    } else {
+      // other pages that do not have permission to access are redirected to the login page.
+      next(`/login`)
+      NProgress.done()
+    }
+  }
 })
 
 router.afterEach(() => {

@@ -9,7 +9,7 @@
             v-for="category,key in categories" :key="key" @click="clickCategory(category.id)">
             {{ category.name }}
           </div>
-          <div class="category-item">会员中心</div>
+          <div class="category-item" v-if="!category_loading">会员中心</div>
         </div>
       </div>
     </div>

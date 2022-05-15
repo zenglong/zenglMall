@@ -20,12 +20,20 @@ export const constantRoutes = [
         component: () => import('@/views/index/index')
       },
       {
+        path: '/login',
+        component: () => import('@/views/login/login')
+      },
+      {
         path: '/goods/list',
         component: () => import('@/views/goods/list')
       },
       {
         path: '/goods/info',
         component: () => import('@/views/goods/info')
+      },
+      {
+        path: '/goods/pay',
+        component: () => import('@/views/goods/pay')
       }
     ]
   },

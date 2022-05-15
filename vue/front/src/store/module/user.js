@@ -3,7 +3,7 @@ import router, { resetRouter } from '@/router'
 import { login, getInfo, logout } from '@/api/user'
 import Layout from '@/layout'
 
-const MyTokenKey = 'my_vue_admin_token'
+const MyTokenKey = 'my_vue_index_token'
 
 export function getToken() {
   return Cookies.get(MyTokenKey)
