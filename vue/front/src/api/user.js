@@ -9,6 +9,14 @@ export function login(data) {
   })
 }
 
+export function register(data) {
+  return request({
+    url: '/front/login.zl?act=register',
+    method: 'post',
+    data: qs.stringify(data)
+  })
+}
+
 export function getInfo() {
   return request({
     url: '/front/get_info.zl',

@@ -18,7 +18,7 @@ export function getPageTitle(pageTitle) {
 
 NProgress.configure({ showSpinner: false }) // NProgress Configuration
 
-const whiteList = ['/', '/login', '/goods/list', '/goods/info'] // no redirect whitelist
+const whiteList = ['/', '/login', '/register', '/goods/list', '/goods/info'] // no redirect whitelist
 
 let getinfo_data = false
 
