@@ -38,6 +38,10 @@ export const constantRoutes = [
       {
         path: '/goods/pay',
         component: () => import('@/views/goods/pay')
+      },
+      {
+        path: '/goods/pay_return',
+        component: () => import('@/views/goods/pay_return')
       }
     ]
   },
