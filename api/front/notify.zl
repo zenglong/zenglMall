@@ -1,0 +1,61 @@
+use builtin,request,openssl,curl,pcre,mysql;
+
+inc '../def.zl';
+inc '../config.zl';
+inc '../mysql.zl';
+inc 'alipay_func.zl';
+inc '../fatal_error.zl';
+
+// 获取支付宝异步通知的post请求数组
+body_array = rqtGetBodyAsArray();
+
+// 通过sort_array脚本函数(在func.zl脚本中定义)，将body_array请求数组的成员，按照key(键名)的ASCII码序从小到大进行排序
+sort_body_arr = sort_array(body_array);
+
+// post请求参数中的sign是支付宝生成的base64格式的签名
+sign = sort_body_arr['sign'];
+// 将请求数组中的sign和sign_type成员去掉，因为支付宝异步通知时生成的sign签名，是没有包含sign和sign_type字段的，因此，验签时也要去除这两个字段
+bltUnset(&sort_body_arr['sign'], &sort_body_arr['sign_type']);
+
+// 通过get_sign_data脚本函数(也定义在func.zl脚本中)，将sort_body_arr排序过的post请求参数数组，
+// 转为需要进行验签的字符串，数组成员之间通过&符号连接，每个成员的key(键名)和对应的值之间用=号连接
+data = get_sign_data(sort_body_arr);
+
+// 通过add_key_header_footer脚本函数(也定义在func.zl脚本中)，将支付宝公钥转为openssl密钥格式
+key_content = add_key_header_footer(config['alipay_public_key'], 64, '-----BEGIN PUBLIC KEY-----', '-----END PUBLIC KEY-----');
+// 通过check_sign脚本函数(也定义在func.zl脚本中)，使用支付宝公钥进行验签
+ret = check_sign(key_content, data, sign);
+
+if(ret)
+	db = bltArray();
+	Mysql.init(db, config, "tpl/error.tpl");
+	order_info = Mysql.fetchOne(db, "select id,oid,status,tid,num,gid from orders where oid=" + sort_body_arr['out_trade_no']);
+	if(sort_array['trade_status'] == 'TRADE_SUCCESS' && order_info['status'] == 'WAIT_BUYER')
+		Mysql.StartTransaction(db);
+		// 通过事务和FOR UPDATE语句对商品库存表中gid所对应的记录行加行锁(注意，这里的gid在创建表结构时就设置了索引，所以可以触发InnoDB的行锁，如果gid不是索引，则会触发表锁，将全表都锁住)
+		// 通过加锁以保证商品库存操作的原子性，防止并发操作可能导致的错误的商品库存
+		store = Mysql.fetchOne(db, "select gid,num from goods_store where gid = '" + order_info['gid'] + "' FOR UPDATE");
+		order_info['status'] = 'WAIT_SELLER_SEND';
+		order_info['tid'] = sort_body_arr['trade_no'];
+		order_info['update_time'] = order_info['pay_time'] = bltDate('%Y-%m-%d %H:%M:%S');
+		Mysql.Update(db, 'orders', order_info, 'id=' + order_info['id']);
+		// 采用付款后减库存方式
+		store['num'] -= order_info['num'];
+		store['num'] = store['num'] < 0 ? 0 : store['num'];
+		Mysql.Update(db, 'goods_store', store, 'gid=' + order_info['gid']);
+		Mysql.Commit(db);
+	endif
+	// 验签成功，则返回success
+	retval = 'success';
+else
+	// 验签失败，则返回fail
+	retval = 'fail';
+endif
+
+// 将签名之类的信息写入notify_url.log日志文件中，方便调试开发
+bltWriteFile('logs/notify_url.log', bltDate('%Y-%m-%d %H:%M:%S') + '\nbody: ' + bltUrlDecode(rqtGetBody())
+	 + '\n\ndata: ' + data + '\n\nsign: ' + sign + '\n\nretval: ' + retval);
+
+// 通过bltOutputBlob模块函数输出success或fail，和print指令相比，该模块函数不会在末尾添加换行符，只会原样输出字符串信息
+bltOutputBlob(retval, -1);
+

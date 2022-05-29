@@ -21,7 +21,7 @@ if(!x_token)
 	x_token = bltStr(&request_queries['token']);
 endif
 sess_data = sessGetData(x_token);
-if(bltCount(sess_data) == 0 || !sess_data['uid'])
+if(!no_need_session && (bltCount(sess_data) == 0 || !sess_data['uid'] || !sess_data['is_admin_login']))
 	common_json_error('请先登录');
 endif
 

@@ -38,6 +38,7 @@ class Login
 		endif
 		sess_data['username'] = result['username'];
 		sess_data['nickname'] = result['nickname'];
+		sess_data['is_front_login'] = TRUE;
 		sess_data['uid'] = result['id'];
 		sess_id = sessMakeId();
 		sessSetData(sess_id, sess_data);

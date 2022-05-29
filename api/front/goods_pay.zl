@@ -1,0 +1,115 @@
+inc 'common.zl';
+use pcre,openssl;
+
+inc 'user_sess.zl';
+inc 'alipay_func.zl';
+inc 'goods_pay_base.zl';
+
+GoodsPay.action(rqtGetQuery());
+
+class GoodsPay
+	fun action(querys)
+		action = querys['act'] ? querys['act'] : 'get_pay_info';
+		if(action == 'get_pay_info')
+			self.getPayInfo(querys);
+		elif(action == 'do_pay')
+			self.doPay(querys);
+		else
+			common_json_error('无效的请求');
+		endif
+	endfun
+
+	// 获取支付信息
+	fun getPayInfo(querys)
+		global sess_data;
+		id = bltInt(querys['gid']);
+		buy_num = bltInt(querys['buy_num']);
+		if(buy_num <= 0)
+			buy_num = 1;
+		endif
+		db = init_db();
+		goods_info = Mysql.fetchOne(db, "select id,name,thumbnail,price,description from goods where id=" + id);
+		user_info = Mysql.fetchOne(db, "select id,username,nickname,phone,true_name,address from users where id=" + sess_data['uid']);
+		goods_info['buy_num'] = buy_num;
+		goods_info['pay_money'] = bltStr(buy_num * bltFloat(goods_info['price']), '%.2f');
+		data['goods_info'] = goods_info;
+		data['posts_data'] = posts_data;
+		data['user_info'] = user_info;
+		common_json_success(data);
+	endfun
+
+	// 执行商品支付操作，包括下单操作(也就是在订单表中添加订单记录)
+	fun doPay(querys)
+		global sess_data, config;
+		posts_data = rqtGetBodyAsArray();
+		for(i=0;bltIterArray(posts_data,&i,&k,&v);)
+			posts_data[k] = bltTrim( bltStr(v) );
+		endfor
+		if(!posts_data['phone'] || !posts_data['true_name'] || !posts_data['address'])
+			common_json_error('收货人姓名，电话，地址都不能为空!');
+		endif
+		db = init_db();
+		self.updateUserInfo(db, posts_data['phone'], posts_data['true_name'], posts_data['address']);
+		
+		id = bltInt(posts_data['gid']);
+		buy_num = bltInt(posts_data['buy_num']);
+		if(buy_num <= 0)
+			buy_num = 1;
+		endif
+		store = Mysql.fetchOne(db, "select gid,num from goods_store where gid = '" + id + "'");
+		available_num = store['num'];
+		if(buy_num > available_num)
+			common_json_error('库存不足，当前可用库存：' + available_num);
+		endif
+		goods_info = Mysql.fetchOne(db, "select id,name,thumbnail,price,description from goods where id=" + id);
+		if(!bltCount(goods_info))
+			common_json_error('商品信息不存在');
+		endif
+		// order_info数组用于设置需要添加到订单表中的订单记录相关的各个字段信息，例如oid(商家订单号)，gid(商品ID)，uid(当前下单的用户ID)，name(商品名称)等字段
+		order_info['update_time'] = order_info['create_time'] = bltDate('%Y-%m-%d %H:%M:%S');
+		order_info['oid'] = bltDate('%Y%m%d%H%M%S') + bltRand(100, 999) + sess_data['uid'];
+		order_info['gid'] = id;
+		order_info['uid'] = sess_data['uid'];
+		order_info['name'] = goods_info['name'];
+		order_info['description'] = goods_info['description'];
+		order_info['price'] = goods_info['price'];
+		order_info['thumbnail'] = goods_info['thumbnail'];
+		order_info['num'] = buy_num;
+		order_info['amount'] = bltStr(buy_num * bltFloat(goods_info['price']), '%.2f');
+		order_info['phone'] = posts_data['phone'];          // 设置收货人电话
+		order_info['true_name'] = posts_data['true_name'];  // 设置收货人姓名
+		order_info['address'] = posts_data['address'];      // 设置收货地址
+		order_info['buyer_remark'] = posts_data['buyer_remark']; // 设置买家备注
+		order_info['seller_remark'] = '';
+		order_info['status'] = 'WAIT_BUYER';
+		Mysql.Insert(db, 'orders', order_info);
+		params = GoodsPayBase.returnDoPayParams(order_info);
+
+		data['params'] = params;
+		data['gateway_url'] = config['gateway_url'];
+		data['immediate_pay'] = FALSE;
+		common_json_success(data);
+	endfun
+
+	fun updateUserInfo(db, phone, true_name, address)
+		global sess_data;
+		user_info = Mysql.fetchOne(db, "select id,phone,true_name,address from users where id=" + sess_data['uid']);
+		if(!user_info['phone'] || !user_info['true_name'] || !user_info['address'])
+			user_info['update_time'] = bltDate('%Y-%m-%d %H:%M:%S');
+		endif
+		if(!user_info['phone'])
+			user_info['phone'] = phone;
+		endif
+		if(!user_info['true_name'])
+			user_info['true_name'] = true_name;
+		endif
+		if(!user_info['address'])
+			user_info['address'] = address;
+		endif
+		// 如果前台用户之前没有设置过电话，姓名，收货地址信息的话，就将确认支付页面传递过来的信息设置到users前台用户表的该用户记录中
+		if(user_info['update_time'])
+			Mysql.Update(db, 'users', user_info, 'id=' + user_info['id']);
+		endif
+	endfun
+endclass
+

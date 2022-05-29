@@ -1,0 +1,52 @@
+class GoodsPayBase
+	// 构建支付宝支付相关的form表单信息
+	fun returnDoPayParams(order_info)
+		global config;
+		biz_content_arr['product_code'] = 'FAST_INSTANT_TRADE_PAY';
+		biz_content_arr['body'] = order_info['description'];
+		biz_content_arr['subject'] = order_info['name'];
+		biz_content_arr['total_amount'] = order_info['amount'];
+		biz_content_arr['out_trade_no'] = order_info['oid'];
+		method = 'alipay.trade.page.pay';
+
+		biz_content = bltJsonEncode(biz_content_arr);
+
+		// 设置params数组，该数组里的成员值会转为http请求参数传递给支付宝网关
+		params['biz_content'] = biz_content;
+		params['method'] = method;
+		params['alipay_sdk'] = 'alipay-sdk-zengl-20200627';
+		params['charset'] = 'UTF-8';
+		params['format'] = 'json';
+		params['version'] = '1.0';
+		params['timestamp'] = bltDate('%Y-%m-%d %H:%M:%S');
+		params['app_id'] = config['app_id'];
+		params['sign_type'] = config['sign_type'];
+		params['notify_url'] = config['notify_url'];
+		params['return_url'] = config['return_url'];
+
+		// 通过sort_array脚本函数(在alipay_func.zl脚本中定义)，将params请求参数数组，按照key(键名)的ASCII码序从小到大进行排序
+		sort_params =  sort_array(params);
+
+		// 通过get_sign_data脚本函数(也定义在alipay_func.zl脚本中)，将sort_params排序过的请求参数数组，
+		// 转为需要签名的字符串，数组成员之间通过&符号连接，每个成员的key(键名)和对应的值之间用=号连接
+		str_to_be_signed = get_sign_data(sort_params);
+
+		key_content = add_key_header_footer(config['merchant_private_key'], 64, '-----BEGIN RSA PRIVATE KEY-----', '-----END RSA PRIVATE KEY-----');
+		key = opensslReadKey(key_content, RSA_PRIVATE);
+		if(key == NULL)
+			common_json_error('read key failed: ' + opensslGetError());
+		endif
+
+		ret = opensslSign(str_to_be_signed, -1, key, &sign, &sign_len, RSA_SIGN_SHA256, USE_EVP);
+		if(!ret)
+			common_json_error('sign failed: ' + opensslGetError());
+		endif
+
+		sign_encode = bltBase64Encode(sign);
+
+		sort_params['sign'] = sign_encode;
+
+		return sort_params;
+	endfun
+endclass
+

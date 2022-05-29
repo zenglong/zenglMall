@@ -44,6 +44,7 @@ else
 			sess_data['username'] = result['username'];
 			sess_data['nickname'] = result['nickname'];
 			sess_data['uid'] = result['id'];
+			sess_data['is_admin_login'] = TRUE;
 			sess_id = sessMakeId();
 			sessSetData(sess_id, sess_data);
 			data['token'] = sess_id;
