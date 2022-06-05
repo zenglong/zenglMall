@@ -1,0 +1,15 @@
+inc 'common.zl';
+inc 'user_sess.zl';
+
+Admin.index();
+
+class Admin
+	fun index()
+		global sess_data;
+		db = init_db();
+		user_info = Mysql.fetchOne(db, "select id,username,nickname,email from users where id=" + sess_data['uid']);
+		data['user_info'] = user_info;
+		common_json_success(data);
+	endfun
+endclass
+

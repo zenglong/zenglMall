@@ -1,0 +1,48 @@
+inc 'common.zl';
+inc 'user_sess.zl';
+
+OrderList.act(rqtGetQuery());
+
+class OrderList
+	fun act(querys)
+		action = querys['act'] ? querys['act'] : 'index';
+		if(action == 'index')
+			self.index();
+		else
+			common_json_error('无效的请求');
+		endif
+	endfun
+
+	fun index()
+		global sess_data;
+		db = init_db();
+		posts = rqtGetBodyAsArray();
+		where = " where uid = " + sess_data['uid'];
+		oid = bltStr(&posts['oid']);
+		name = bltStr(&posts['name']);
+		username = bltStr(&posts['username']);
+		status = bltStr(&posts['status']);
+		// 根据订单号搜索订单列表
+		if(oid)
+			where += ' and oid like "%' + Mysql.Escape(db, oid) + '%"';
+		endif
+		// 根据商品名称搜索订单列表
+		if(name)
+			where += ' and name like "%' + Mysql.Escape(db, name) + '%"';
+		endif
+		// 根据订单状态搜索订单列表
+		if(status)
+			where += ' and status = "' + Mysql.Escape(db, status) + '"';
+		endif
+		tmp = Mysql.fetchOne(db, "select count(1) as cnt from orders " + where);
+		data['total'] = bltInt(tmp['cnt']);
+		page = bltInt(posts['page']);
+		pageSize = bltInt(posts['pageSize']);
+		limit = pageSize <= 0 ? 10 : pageSize;
+		offset = page <= 0 ? 0 : (page - 1) * limit;
+		data['list_data'] = Mysql.fetchAll(db, "select id,oid,name,thumbnail,amount,num,status from orders "+ where +
+							" order by id desc limit " + offset + "," + limit);
+		common_json_success(data);
+	endfun
+endclass
+
