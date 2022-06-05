@@ -30,3 +30,11 @@ export function logout() {
     method: 'post',
   })
 }
+
+export function adminIndex(params) {
+  return request({
+    url: '/front/admin.zl',
+    method: 'get',
+    params
+  })
+}

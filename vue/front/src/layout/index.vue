@@ -1,5 +1,5 @@
 <template>
-  <div :class="'app-wrapper' + (gray_background ? ' app-gray-background' : '')">
+  <div :class="'app-wrapper' + (gray_background ? ' app-gray-background' : '') + (is_user_admin ? ' app-wrapper-useradmin' : '')">
     <div class="header-wrapper">
       <div class="header-inner clearfix">
         <div class="site-name" @click="clickSiteName()">zenglMall</div>
@@ -9,7 +9,7 @@
             v-for="category,key in categories" :key="key" @click="clickCategory(category.id)">
             {{ category.name }}
           </div>
-          <div class="category-item" v-if="!category_loading">会员中心</div>
+          <div class="category-item" v-if="!category_loading" @click="clickUserMember()">会员中心</div>
         </div>
       </div>
     </div>
@@ -22,7 +22,8 @@
         </div>
       </div>
     </div>
-    <div :class="'app-content' + (cid > 0 && sub_categories.length > 0 ? ' category-has-sub' : '')">
+    <div :class="'app-content' + (cid > 0 && sub_categories.length > 0 ? ' category-has-sub' : '') + 
+        (is_user_admin ? ' app-user-admin' : '')">
       <router-view />
     </div>
     <div class="app-bottom">
@@ -44,10 +45,16 @@ export default {
       category_loading: false,
       categories: [],
       sub_categories: [],
+      is_user_admin: false,
     }
   },
   watch: {
     $route(to) {
+      if(to.path.indexOf("/user_admin/") == 0) {
+        this.is_user_admin = true
+      }
+      else 
+        this.is_user_admin = false
       this.checkGrayBackGround(to.path)
       if(to.query.cid) {
         this.cid = parseInt(to.query.cid)
@@ -70,6 +77,12 @@ export default {
     }
   },
   mounted() {
+    if(this.$route.path.indexOf("/user_admin/") == 0) {
+      this.is_user_admin = true
+    }
+    else {
+      this.is_user_admin = false
+    }
     this.checkGrayBackGround(this.$route.paht)
     if(this.$route.query.cid) {
       this.cid = parseInt(this.$route.query.cid)
@@ -80,6 +93,9 @@ export default {
     this.getCategoryList()
   },
   methods: {
+    clickUserMember() {
+      this.$router.push('/user_admin/index')
+    },
     checkGrayBackGround(path) {
       if(path == '/' || path == '/goods/index' || path == '/goods/list') {
         this.gray_background = true
@@ -140,6 +156,25 @@ export default {
   }
 }
 </script>
+
+<style>
+::-webkit-scrollbar {
+  /*滚动条整体样式*/
+  width : 5px !important;  /*高宽分别对应横竖滚动条的尺寸*/
+  height: 5px !important;
+  cursor: pointer !important;
+}
+::-webkit-scrollbar-thumb {
+  /*滚动条里面小方块*/
+  border-radius   : 10px !important;
+  background-color: #DDDEE0 !important;
+}
+::-webkit-scrollbar-thumb:hover {
+  /*滚动条里面小方块*/
+  border-radius   : 10px !important;
+  background-color: #b3b3b4 !important;
+}
+</style>
 
 <style lang="scss" scoped>
 .clearfix:after{
@@ -229,6 +264,9 @@ export default {
   background-color: white;
   width: 100%;
 }
+.app-wrapper-useradmin {
+  height: 100%;
+}
 .app-gray-background {
   background-color: #f4f4f4;
 }
@@ -236,6 +274,10 @@ export default {
   padding-top: 55px;
   width: 1200px;
   margin: 0 auto;
+}
+.app-user-admin {
+  height: calc(100% - 55px - 60px);
+  width: calc(100% - 100px);
 }
 .category-has-sub {
   padding-top: 93px;

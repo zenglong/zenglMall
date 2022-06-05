@@ -42,6 +42,20 @@ export const constantRoutes = [
       {
         path: '/goods/pay_return',
         component: () => import('@/views/goods/pay_return')
+      },
+      {
+        path: '/user_admin/',
+        component: () => import('@/views/user_admin/base'),
+        children: [
+          {
+            path: 'index',
+            component: () => import('@/views/user_admin/index'),
+          },
+          {
+            path: 'order_list',
+            component: () => import('@/views/user_admin/order_list'),
+          }
+        ]
       }
     ]
   },
