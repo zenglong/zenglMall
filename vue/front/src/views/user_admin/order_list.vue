@@ -47,17 +47,32 @@
       :total="total"
       style="margin-top:10px;margin-left:15px">
     </el-pagination>
+
+    <el-drawer
+      title="订单详情"
+      :wrapperClosable="false"
+      :visible.sync="showOrderInfo"
+      direction="rtl"
+      size="60%">
+      <order-view v-if="showOrderInfo" :order_id="order_id" :updateCallback="updateCallback"></order-view>
+    </el-drawer>
   </div>
 </template>
 
 <script>
 import { orderList } from '@/api/order'
 import { get_all_order_status, get_order_status_name } from '@/assets/js/common'
+import orderView from './order_view'
 
 export default {
+  components: {
+    orderView,
+  },
   data() {
     return {
       tabLoading: false,
+      showOrderInfo: false,
+      order_id: 0,
       currentPage: 1,
       pageSize: 10,
       total: 0,
@@ -75,8 +90,12 @@ export default {
     this.onSearchSubmit()
   },
   methods: {
+    updateCallback() {
+      this.onSearchSubmit(this.currentPage)
+    },
     viewOrder(id) {
-      // TODO
+      this.order_id = id
+      this.showOrderInfo = true
     },
     get_status_name(value) {
       return get_order_status_name(this.all_order_status, value)
@@ -140,5 +159,8 @@ export default {
 .search-btn {
   padding: 10px 20px;
   margin-top: 2px;
+}
+.operate-btn {
+  cursor: pointer;
 }
 </style>

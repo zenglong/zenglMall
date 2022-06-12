@@ -26,7 +26,7 @@
         (is_user_admin ? ' app-user-admin' : '')">
       <router-view />
     </div>
-    <div class="app-bottom">
+    <div class="app-bottom" v-if="!is_user_admin">
       <div class="app-bottom-inner">&copy; zenglMall</div>
     </div>
   </div>
@@ -276,7 +276,7 @@ export default {
   margin: 0 auto;
 }
 .app-user-admin {
-  height: calc(100% - 55px - 60px);
+  height: calc(100% - 10px);
   width: calc(100% - 100px);
 }
 .category-has-sub {

@@ -8,3 +8,27 @@ export function orderList(data) {
     data: qs.stringify(data)
   })
 }
+
+export function getInfo(params) {
+  return request({
+    url: '/front/order_list.zl?act=view',
+    method: 'get',
+    params
+  })
+}
+
+export function setBuyerConfirm(params) {
+  return request({
+    url: '/front/order_list.zl?act=set_buyer_confirm',
+    method: 'get',
+    params
+  })
+}
+
+export function continuePay(params) {
+  return request({
+    url: '/front/order_pay.zl',
+    method: 'get',
+    params
+  })
+}
