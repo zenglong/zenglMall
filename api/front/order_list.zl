@@ -3,16 +3,22 @@ inc 'user_sess.zl';
 
 OrderList.act(rqtGetQuery());
 
+// OrderList类用于前台用户执行和订单相关的操作
 class OrderList
 	fun act(querys)
 		action = querys['act'] ? querys['act'] : 'index';
 		if(action == 'index')
 			self.index();
+		elif(action == 'view')
+			self.view(bltInt(querys['id']));
+		elif(action == 'set_buyer_confirm')
+			self.setBuyerConfirm(bltInt(querys['id']));
 		else
 			common_json_error('无效的请求');
 		endif
 	endfun
 
+	// 前台会员中心订单列表页面
 	fun index()
 		global sess_data;
 		db = init_db();
@@ -43,6 +49,32 @@ class OrderList
 		data['list_data'] = Mysql.fetchAll(db, "select id,oid,name,thumbnail,amount,num,status from orders "+ where +
 							" order by id desc limit " + offset + "," + limit);
 		common_json_success(data);
+	endfun
+
+	// 前台会员中心订单详情页面
+	fun view(id)
+		global sess_data;
+		db = init_db();
+		data['order_info'] = Mysql.fetchOne(db, "select * from orders where uid = " + sess_data['uid'] + " and id = " + id);
+		common_json_success(data);
+	endfun
+
+	// 对待收货的订单执行确认收货的操作，也就是将订单的状态设置为已收货状态
+	fun setBuyerConfirm(id)
+		global sess_data;
+		db = init_db();
+		order_info = Mysql.fetchOne(db, "select * from orders where uid = " + sess_data['uid'] + " and id = " + id);
+		if(!bltCount(order_info))
+			common_json_error('订单信息不存在');
+		endif
+		if(order_info['status'] != 'WAIT_BUYER_CONFIRM')
+			common_json_error('只能对待收货的订单进行确认收货');
+		endif
+		// 通过将订单在orders表中的数据库记录中的status字段的值设置为BUYER_CONFIRM，从而将订单设置为已收货状态
+		data['status'] = 'BUYER_CONFIRM';
+		data['confirm_time'] = data['update_time'] = bltDate("%Y-%m-%d %H:%M:%S");
+		Mysql.Update(db, 'orders', data, 'id=' + id);
+		common_json_success(NULL, '操作成功');
 	endfun
 endclass
 

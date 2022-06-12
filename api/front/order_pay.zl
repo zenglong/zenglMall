@@ -1,0 +1,35 @@
+inc 'common.zl';
+use pcre,openssl;
+
+inc 'user_sess.zl';
+inc 'alipay_func.zl';
+inc 'goods_pay_base.zl';
+
+querys = rqtGetQuery();
+OrderPay.doPay(bltInt(querys['id']));
+
+class OrderPay
+	// 前台用户通过订单详情页面，对待付款的订单执行继续付款的操作
+	fun doPay(id)
+		global sess_data, config;
+		db = init_db();
+		order_info = Mysql.fetchOne(db, "select * from orders where uid = " + sess_data['uid'] + " and id = " + id);
+		if(!bltCount(order_info))
+			common_json_error('订单信息不存在');
+		endif
+		if(order_info['status'] == 'WAIT_BUYER')
+			store = Mysql.fetchOne(db, "select gid,num from goods_store where gid = '" + order_info["gid"] + "'");
+			if(order_info['num'] > store['num'])
+				common_json_error('库存不足，当前可用库存：' + store['num']);
+			endif
+			params = GoodsPayBase.returnDoPayParams(order_info);
+			data['params'] = params;
+			data['gateway_url'] = config['gateway_url'];
+			data['immediate_pay'] = FALSE;
+			common_json_success(data);
+		else
+			common_json_error('订单不是待付款状态');
+		endif
+	endfun
+endclass
+
