@@ -3,6 +3,9 @@
     <div class="user-menu-left">
       <div :class="'user-menu-item' + (activeTag == 'index' ? ' user-menu-active' : '')" @click="clickTag('index')">概览</div>
       <div :class="'user-menu-item' + (activeTag == 'orderList' ? ' user-menu-active' : '')" @click="clickTag('orderList')">订单列表</div>
+      <div :class="'user-menu-item' + (activeTag == 'userInfo' ? ' user-menu-active' : '')" @click="clickTag('userInfo')">修改信息</div>
+      <div :class="'user-menu-item' + (activeTag == 'password' ? ' user-menu-active' : '')" @click="clickTag('password')">修改密码</div>
+      <div :class="'user-menu-item' + (activeTag == 'logout' ? ' user-menu-active' : '')" @click="clickTag('logout')">退出登录</div>
     </div>
     <div class="user-content-right">
       <router-view />
@@ -22,6 +25,10 @@ export default {
       this.activeTag = 'index'
     } else if(this.$route.path == '/user_admin/order_list') {
       this.activeTag = 'orderList'
+    } else if(this.$route.path == '/user_admin/user_info') {
+      this.activeTag = 'userInfo'
+    } else if(this.$route.path == '/user_admin/password') {
+      this.activeTag = 'password'
     }
   },
   methods: {
@@ -31,6 +38,26 @@ export default {
         this.$router.push('/user_admin/index')
       } else if(this.activeTag == 'orderList') {
         this.$router.push('/user_admin/order_list')
+      } else if(this.activeTag == 'userInfo') {
+        this.$router.push('/user_admin/user_info')
+      } else if(this.activeTag == 'password') {
+        this.$router.push('/user_admin/password')
+      } else if(this.activeTag == 'logout') {
+        this.$confirm('确定退出吗?', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          this.$store.dispatch('user/logout').then((response) => {
+            this.$message({
+              message: response.msg,
+              type: 'success'
+            })
+            window.location.reload()
+          }).catch(error => {
+          })
+        }).catch(() => {
+        })
       }
     }
   }

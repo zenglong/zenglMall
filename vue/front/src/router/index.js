@@ -54,6 +54,14 @@ export const constantRoutes = [
           {
             path: 'order_list',
             component: () => import('@/views/user_admin/order_list'),
+          },
+          {
+            path: 'user_info',
+            component: () => import('@/views/user_admin/user_info'),
+          },
+          {
+            path: 'password',
+            component: () => import('@/views/user_admin/password'),
           }
         ]
       }

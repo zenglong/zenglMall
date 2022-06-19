@@ -38,3 +38,27 @@ export function adminIndex(params) {
     params
   })
 }
+
+export function getUserInfo(params) {
+  return request({
+    url: '/front/user_info.zl?act=get_info',
+    method: 'get',
+    params
+  })
+}
+
+export function modifyUserInfo(data) {
+  return request({
+    url: '/front/user_info.zl?act=modify',
+    method: 'post',
+    data: qs.stringify(data)
+  })
+}
+
+export function modifyPassword(data) {
+  return request({
+    url: '/front/user_info.zl?act=modify_password',
+    method: 'post',
+    data: qs.stringify(data)
+  })
+}
