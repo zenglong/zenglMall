@@ -1,0 +1,87 @@
+use pcre;
+inc 'common.zl';
+inc 'user_sess.zl';
+
+UserInfo.action(rqtGetQuery());
+
+class UserInfo
+	fun action(querys)
+		action = querys['act'] ? querys['act'] : 'get_info';
+		if(action == 'get_info')
+			self.get_info();
+		elif(action == 'modify')
+			self.modify();
+		elif(action == 'modify_password')
+			self.modify_password();
+		else
+			common_json_error('无效的请求');
+		endif
+	endfun
+
+	fun get_info()
+		global sess_data;
+		db = init_db();
+		data['user_info'] = Mysql.fetchOne(db, "select id,username,nickname,email,phone,true_name,address from users where id = " + sess_data['uid']);
+		common_json_success(data);
+	endfun
+
+	fun modify()
+		global sess_data;
+		posts_data = rqtGetBodyAsArray();
+		// 将用户提交过来的昵称，邮箱，电话，真实姓名，收货地址信息的左右两侧的空格符等给去除掉
+		for(i=0;bltIterArray(posts_data,&i,&k,&v);)
+			if(k == 'nickname' || k == 'email' || k == 'phone' || k == 'true_name' || k == 'address')
+				posts_data[k] = bltTrim( bltStr(v) );
+			else
+				bltUnset(&posts_data[k]);
+			endif
+		endfor
+		if(!posts_data['nickname'] || !posts_data['email'] || !posts_data['phone'] || !posts_data['true_name'] || !posts_data['address'])
+			common_json_error('用户昵称，邮箱，收货人姓名，电话，地址都不能为空!');
+		endif
+		// 通过正则表达式来判断邮箱格式是否正确
+		if(!pcreMatch('^[_a-z0-9-]+(\.[_a-z0-9-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,})$', posts_data['email'], &results, 'is'))
+			common_json_error('邮箱格式不正确!');
+		endif
+		db = init_db();
+		user_info = Mysql.fetchOne(db, "select id,username from users where (nickname='" + Mysql.Escape(db, posts_data['username']) + 
+						"' or email='" + Mysql.Escape(db, posts_data['email']) + "') and id != " + sess_data['uid']);
+		if(bltCount(user_info) > 0)
+			common_json_error('用户昵称或邮箱已存在!');
+		endif
+		// 通过更新当前登录用户在users表中的数据库字段，来完成修改信息的操作
+		Mysql.Update(db, 'users', posts_data, 'id=' + sess_data['uid']);
+		common_json_success(NULL, '修改成功！');
+	endfun
+
+	// 执行修改密码的操作
+	fun modify_password()
+		global sess_data;
+		posts_data = rqtGetBodyAsArray();
+		// 将用户提交过来的旧密码，新密码，以及确认密码的左右两侧的空格符之类的空白字符给去除掉，同时将无效的POST请求字段给删除掉
+		for(i=0;bltIterArray(posts_data,&i,&k,&v);)
+			if(k == 'old_password' || k == 'new_password' || k == 'confirm_password')
+				posts_data[k] = bltTrim( bltStr(v) );
+			else
+				bltUnset(&posts_data[k]);
+			endif
+		endfor
+		if(!posts_data['old_password'] || !posts_data['new_password'] || !posts_data['confirm_password'])
+			common_json_error('旧密码，新密码，确认密码都不能为空!');
+		endif
+		if(posts_data['new_password'] != posts_data['confirm_password'])
+			common_json_error('新密码和确认密码不相同!');
+		endif
+		db = init_db();
+		user_info = Mysql.fetchOne(db, "select id,password from users where id = " + sess_data['uid']);
+		if(user_info['password'] != bltMd5(posts_data['old_password']))
+			common_json_error('旧密码不正确!');
+		endif
+		// 将密码进行md5加密
+		user_info['password'] = bltMd5(posts_data['new_password']);
+		// 更新前台用户在users表中的password字段(存储前台用户密码的字段)
+		Mysql.Update(db, 'users', user_info, 'id=' + sess_data['uid']);
+		common_json_success(NULL, '修改密码成功！');
+	endfun
+endclass
+
