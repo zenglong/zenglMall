@@ -1,6 +1,6 @@
 <template>
   <div>
-    <el-form class="password-form" v-loading="loading">
+    <el-form class="password-form">
       <el-form-item label="旧密码" class="my-form-item">
         <el-input v-model="info.old_password" placeholder="旧密码" type="password"></el-input>
       </el-form-item>

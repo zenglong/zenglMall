@@ -35,3 +35,7 @@ export function getImagePath(image) {
   }
   return returl
 }
+
+export function getLoginRedirectName() {
+  return 'my_login_redirect_url'
+}

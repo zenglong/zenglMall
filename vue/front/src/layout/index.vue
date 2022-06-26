@@ -34,6 +34,9 @@
 
 <script>
 import { getCategoryList } from '@/api/category'
+import { getLoginRedirectName } from '@/assets/js/common'
+import Cookies from "js-cookie"
+import { mapGetters } from 'vuex';
 
 export default {
   name: 'Layout',
@@ -74,7 +77,10 @@ export default {
         return parseInt(this.cateInfo.pid)
       }
       return 0
-    }
+    },
+    ...mapGetters([
+      'token',
+    ]),
   },
   mounted() {
     if(this.$route.path.indexOf("/user_admin/") == 0) {
@@ -94,6 +100,9 @@ export default {
   },
   methods: {
     clickUserMember() {
+      if(!this.token) {
+        Cookies.set(getLoginRedirectName(), '/user_admin/index')
+      }
       this.$router.push('/user_admin/index')
     },
     checkGrayBackGround(path) {

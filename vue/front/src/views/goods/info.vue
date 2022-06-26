@@ -50,7 +50,9 @@
 
 <script>
 import { getGoodsInfo } from '@/api/goods'
-import { getImagePath } from '@/assets/js/common'
+import { getImagePath, getLoginRedirectName } from '@/assets/js/common'
+import Cookies from "js-cookie"
+import { mapGetters } from 'vuex';
 
 export default {
   data() {
@@ -63,6 +65,11 @@ export default {
       goods_store_txt: '库　　存',
       buy_num: 1,
     }
+  },
+  computed: {
+    ...mapGetters([
+      'token',
+    ]),
   },
   watch: {
     $route(to) {
@@ -80,6 +87,9 @@ export default {
   },
   methods: {
     goodsPay() { // 商品购买
+      if(!this.token) {
+        Cookies.set(getLoginRedirectName(), '/goods/pay?gid='+this.goods_info.id+"&num="+this.buy_num)
+      }
       this.$router.push('/goods/pay?gid='+this.goods_info.id+"&num="+this.buy_num)
     },
     goodsInfo(gid, cid) {

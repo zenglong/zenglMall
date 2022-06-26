@@ -16,6 +16,9 @@
 </template>
 
 <script>
+import { getLoginRedirectName } from '@/assets/js/common'
+import Cookies from "js-cookie"
+
 export default {
   data() {
     return {
@@ -27,9 +30,19 @@ export default {
       }
     }
   },
+  mounted() {
+    if(Cookies.get(getLoginRedirectName())) {
+      this.redirect = Cookies.get(getLoginRedirectName())
+      console.log('mounted redirect',this.redirect)
+    }
+  },
   methods: {
     login() {
       this.$store.dispatch('user/login', this.form).then(() => {
+        if(Cookies.get(getLoginRedirectName())) {
+          Cookies.remove(getLoginRedirectName())
+        }
+        console.log('user login redirect',this.redirect)
         this.$router.push({ path: this.redirect })
         this.loading = false
       }).catch(() => {

@@ -72,7 +72,7 @@
     </el-form>
 
     <div v-if="do_pay">
-      <form id='alipaysubmit' name='alipaysubmit' :action='gateway_url'>
+      <form id='alipaysubmit' name='alipaysubmit' :action='gateway_url' style='display:none;' ref="alipayForm">
         <template v-for="(param, key) in params">
           <div :key="key"><input :name='key' :value="param" /></div>
         </template>
@@ -122,7 +122,10 @@ export default {
         this.gateway_url = response.data.gateway_url + '?charset=' + this.params['charset']
         this.immediate_pay = response.data.immediate_pay ? true : false
         this.do_pay = true
-        this.continue_pay_loading = false
+        // this.continue_pay_loading = false
+        this.$nextTick(() => {
+          this.$refs.alipayForm.submit();
+        })
       }).catch(error => {
         this.continue_pay_loading = false
       })
