@@ -1,0 +1,24 @@
+use builtin, mysql, request;
+inc '../def.zl';
+inc '../config.zl';
+inc '../mysql.zl';
+
+// 初始化数据库连接
+fun init_db()
+	global config;
+	db = bltArray();
+	Mysql.init(db, config);
+	return db;
+endfun
+
+// cmd目录中的脚本只能在命令行中运行
+if(bltIsRunInCmd())
+	bltSetImmediatePrint(TRUE);
+	print 'now in cmd';
+else
+	print 'must be run in cmd';
+	bltExit();
+endif
+
+Mysql db;
+db = init_db();
