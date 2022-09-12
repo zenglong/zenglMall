@@ -8,7 +8,7 @@ function resolve(dir) {
 
 module.exports = {
   publicPath: process.env.NODE_ENV === 'production'
-    ? '/dist/'
+    ? '/adm_dist/'
     : '/',
   chainWebpack(config) {
     // when there are many pages, it will cause too many meaningless requests
