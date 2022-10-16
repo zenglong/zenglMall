@@ -53,8 +53,8 @@
       <el-form-item label="买家备注">
         <span>{{ info.buyer_remark ? info.buyer_remark : '无' }}</span>
       </el-form-item>
-      <el-form-item label="商家备注">
-        <span>{{ info.seller_remark ? info.seller_remark : '无' }}</span>
+      <el-form-item label="商家备注" class="seller-remark-label">
+        <div class="seller-remark" v-html="info.seller_remark ? info.seller_remark : '<p>无</p>'"></div>
       </el-form-item>
       <div class="save-botton-wrapper">
         <el-button type="primary" round v-if="info.status == 'WAIT_BUYER'" class="continue-pay-btn"
@@ -185,5 +185,13 @@ export default {
 }
 .return-to-list {
   margin-left: 30px;
+}
+.seller-remark {
+  line-height: 20px;
+}
+.seller-remark-label {
+  ::v-deep .el-form-item__label {
+    line-height: 48px;
+  }
 }
 </style>
