@@ -15,8 +15,11 @@ inc '../mysql.zl';
 inc '../fatal_error.zl';
 
 headers = rqtGetHeaders();
+for(i=0; bltIterArray(headers,&i,&k,&v); )
+	header_lowers[bltToLower(k)] = v;
+endfor
 request_queries = rqtGetQuery();
-x_token = bltStr(&headers['X-Token']);
+x_token = bltStr(&header_lowers['x-token']);
 if(!x_token)
 	x_token = bltStr(&request_queries['token']);
 endif

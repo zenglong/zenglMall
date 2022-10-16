@@ -1,5 +1,8 @@
 headers = rqtGetHeaders();
-x_token = bltStr(&headers['X-Token']);
+for(i=0; bltIterArray(headers,&i,&k,&v); )
+	header_lowers[bltToLower(k)] = v;
+endfor
+x_token = bltStr(&header_lowers['x-token']);
 if(!x_token)
 	request_queries = rqtGetQuery();
 	x_token = bltStr(&request_queries['token']);
