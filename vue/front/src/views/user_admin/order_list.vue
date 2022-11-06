@@ -123,6 +123,7 @@ export default {
         status: this.sform.status,
       }).then(response => {
         this.list_data = response.data.list_data
+        this.total = response.data.total
         this.tabLoading = false
       }).catch(error => {
         this.tabLoading = false
