@@ -1,6 +1,6 @@
 ## 介绍
 
-zenglMall是使用zengl语言开发商城系统的项目，该项目使用MIT开源协议，没有使用上的限制，下面以CentOS 7.x为例，来说明如何让zenglMall运行起来。
+zenglMall是使用zengl语言开发商城系统的项目，该项目使用MIT开源协议，没有使用上的限制，下面以CentOS 7.x为例，来说明如何让zenglMall运行起来，从0.3.0版本开始前端使用前后端分离方式，完全使用vue开发。
 
 ```
 [zengl@localhost zenglServer]$ cat /etc/redhat-release
@@ -10,14 +10,14 @@ CentOS Linux release 7.7.1908 (Core)
 
 ## 配置zenglServer
 
-首先配置zenglServer，让其网站根目录指向zenglMall(也就是下面配置文件中的webroot所对应的配置)：
+首先配置zenglServer，让其网站根目录指向zenglMall下面的api接口所在目录(也就是下面配置文件中的webroot所对应的配置)：
 
 ```
 ................................. (zenglServer的config.zl配置，省略N行)
 port = 8083; // 绑定的端口
 
 .................................
-webroot = "/home/zengl/zenglMall"; // web根目录，指向zenglMall所在的目录
+webroot = "/home/zengl/zenglMall/api"; // web根目录，指向zenglMall下面的api子目录
 
 session_dir = "my_sessions"; // 会话目录
 session_expire = 1440; // 会话默认超时时间(以秒为单位)，可以根据需要调整会话超时时间
@@ -25,12 +25,12 @@ session_cleaner_interval = 3600; // 会话文件清理进程的清理时间间�
 .................................
 ```
 
-然后运行zenglServer(v0.2.0的zenglMall对zenglServer的最低版本要求是v0.24.0，需要开启mysql，magick，pcre以及openssl模块)：
+然后运行zenglServer(v0.3.0的zenglMall对zenglServer的最低版本要求是v0.25.1，需要开启mysql，magick，pcre以及openssl模块)：
 
 ```
 [zengl@localhost zenglServer]$ ./zenglServer -v
-zenglServer version: v0.24.0
-zengl language version: v1.8.3
+zenglServer version: v0.25.1
+zengl language version: v1.9.1
 [zengl@localhost zenglServer]$ ./zenglServer
 [zengl@localhost zenglServer]$ tail -f logfile -n 20
 ..............................................
@@ -40,7 +40,7 @@ use default config: config.zl
 *** config is in debug mode ***
 run config.zl complete, config: 
 port: 8083 process_num: 1
-webroot: /home/zengl/zenglMall
+webroot: /home/zengl/zenglMall/api
 session_dir: my_sessions session_expire: 1440 cleaner_interval: 3600
 remote_debug_enable: False remote_debugger_ip: 127.0.0.1 remote_debugger_port: 9999 zengl_cache_enable: False shm_enable: False shm_min_size: 307200
 verbose: True request_body_max_size: 204800, request_header_max_size: 5120 request_url_max_size: 1024
@@ -90,23 +90,24 @@ zengl     2513  0.0  0.0 112712   968 pts/0    S+   14:37   0:00 grep --color=au
 
 ## 创建数据库表结构
 
-要访问商城首页和进入后台管理界面，还需要创建数据库表结构，首先修改zenglMall根目录中的config.zl配置：
+要访问商城首页和进入后台管理界面，还需要创建数据库表结构，首先修改zenglMall根目录中的api子目录中的config.zl配置：
 
 ```
-config['db_host'] = 'localhost';  // 填写mysql数据库ip
-config['db_port'] = 3306;         // 填写mysql数据库端口
-config['db_user'] = 'root';       // 填写mysql用户名
-config['db_passwd'] = '123456';   // 填写mysql密码
-config['db_name'] = 'testmall';   // 填写mysql数据库名
-config['version'] = '0.2.0';      // zenglMall版本号，无需修改
+config['db_host'] = 'localhost';   // 填写mysql数据库ip
+config['db_port'] = 3306;          // 填写mysql数据库端口
+config['db_user'] = 'root';        // 填写mysql用户名
+config['db_passwd'] = '123456';    // 填写mysql密码
+config['db_name'] = 'testmall';    // 填写mysql数据库名
+config['db_debug'] = 1;    	   // 是否开启调试，记录sql到日志中
+config['version'] = '0.3.0';       // zenglMall版本号，无需修改
 config['site_name'] = 'zenglMall'; // 站点名称
 config['site_desc'] = 'mall made by zengl language'; // 站点描述
 // 支付宝的APPID(发起请求的应用ID)
 config['app_id'] = '';
 // 支付完成后的异步通知地址，必须是外网可以访问到的地址
-config['notify_url'] = 'http://domain_url/notify_url.zl';
+config['notify_url'] = 'http://domain_url/front/notify.zl';
 // 支付完成后跳转返回到商家的地址
-config['return_url'] = 'http://domain_url/return_url.zl';
+config['return_url'] = 'http://localhost:8082/#/goods/pay_return';
 // 签名方式，目前测试脚本只支持最新的RSA2方式，所以不需要修改
 config['sign_type'] = 'RSA2';
 // 支付宝网关，沙箱的网关地址和正式环境的网关地址不同
@@ -165,7 +166,7 @@ mysql服务端的版本号信息：5.5.64
 
 mysql当前设置的字符集：utf8
 
-zenglMall版本信息：0.1.0
+zenglMall版本信息：0.3.0
 
 用户名：admin
 
@@ -178,11 +179,47 @@ zenglMall版本信息：0.1.0
 
 安装会生成install.lock锁文件，以防止误操作。在有锁文件的情况下，再次执行create_table.zl脚本，就会提示 lock file exists ，并阻止脚本继续执行
 
-安装完毕后，就可以通过 http://192.168.1.113:8083/index.zl 的地址看到商城的首页了，当然一开始首页的导航栏只有一个会员中心的菜单，更多的菜单需要在后台通过添加顶层分类的形式来添加。一开始页面上面还没有商品信息，商品信息也需要在管理后台添加。
+由于0.3.0版本开始使用前后端分离模式，前端需要安装npm来进行调试和打包。
 
-我们可以使用 admin 和 admin@123456 的初始后台管理员的用户名和密码，通过 http://192.168.1.113:8083/admin/login.zl 登录后台
+进入zenglMall下面的vue子目录，vue目录下面包含两个子目录：front目录和admin目录，front目录存放的是普通用户可以访问的前台页面，例如首页等，admin目录存放的是管理员访问的后台页面。
 
-登录成功后的后台地址：http://192.168.1.113:8083/admin/admin.zl ，此地址是概览页面，该页面可以看到一些基本信息，例如：mysql版本号，zenglServer版本号，zengl语言版本等等，还可以在管理后台添加分类，添加商品，以及进行订单管理等。
+先将front和admin目录中的.env.development文件里的VUE_APP_API_BASE_URL设置为zenglMall接口所在的地址，例如：http://192.168.1.113:8083/，下面是front目录中本地调试相关的命令：
+
+```
+Administrator@ZKDDL1MMJ6UGK18 MINGW64 /d/phpstudy_pro/WWW/zenglMall/vue/front
+$ npm install (第一次运行前，先通过npm install安装依赖文件等)
+........................................
+Administrator@ZKDDL1MMJ6UGK18 MINGW64 /d/phpstudy_pro/WWW/zenglMall/vue/front
+$ npm run serve (通过npm run serve启动调试)
+........................................
+
+  App running at:
+  - Local:   http://localhost:8082/
+  - Network: http://192.168.1.4:8082/
+........................................
+```
+
+接着就可以通过 http://localhost:8082/#/ 的地址看到商城的首页了，当然一开始首页的导航栏只有一个会员中心的菜单，更多的菜单需要在后台通过添加顶层分类的形式来添加。一开始页面上面还没有商品信息，商品信息也需要在管理后台添加。
+
+同样的，管理后台也需要在vue/admin目录中通过npm run serve命令来启动调试(也需要将.env.development文件里的VUE_APP_API_BASE_URL设置为zenglMall接口所在的地址，例如：http://192.168.1.113:8083/)：
+
+```
+Administrator@ZKDDL1MMJ6UGK18 MINGW64 /d/phpstudy_pro/WWW/zenglMall/vue/admin
+$ npm install (第一次运行前，先通过npm install安装依赖文件等)
+..........................................
+Administrator@ZKDDL1MMJ6UGK18 MINGW64 /d/phpstudy_pro/WWW/zenglMall/vue/admin
+$ npm run serve (通过npm run serve启动调试)
+..........................................
+
+  App running at:
+  - Local:   http://localhost:8080/
+  - Network: http://192.168.1.4:8080/
+..........................................
+```
+
+接着，我们可以使用 admin 和 admin@123456 的初始后台管理员的用户名和密码，通过 http://localhost:8080/#/admin/login 登录管理后台
+
+登录成功后的后台地址：http://localhost:8080/#/admin/index ，此地址是概览页面，该页面可以看到一些基本信息，例如：mysql版本号，zenglServer版本号，zengl语言版本等等，还可以在管理后台添加分类，添加商品，以及进行订单管理等。
 
 在后台添加商品后，如果要测试支付功能，除了要配置上面提到过的支付宝的APPID，商户私钥等配置外，还必须确保配置中的异步通知地址能被外网访问到(因为支付完成后，支付宝会将支付完成情况通过这个地址反馈给服务器，因此，ip地址或域名必须能被外网访问到)，对于本地测试环境，可以利用ngrok之类的工具，将外网请求转发到本地测试环境。
 
@@ -192,7 +229,7 @@ zenglMall版本信息：0.1.0
 
 当zenglMall有新版本时，要对系统中的旧版本的zenglMall进行更新升级的话，除了要将代码更新到最新版本外，还需要将数据库进行升级。
 
-从0.2.0版本开始，在根目录下的cmd目录中，增加了一个update_table.zl的脚本(只能在命令行中运行此脚本)，该脚本会根据update.lock文件中记录的更新用的源版本号(如果没有update.lock文件，则源版本号为0.1.0，表示从0.1.0版本开始进行更新升级)，以及配置文件中的当前代码版本号，对数据库表结构进行升级，从而让数据库的表结构能够和当前版本的代码相匹配。
+在api目录下的cmd目录中，有一个update_table.zl的脚本(只能在命令行中运行此脚本)，该脚本会根据update.lock文件中记录的更新用的源版本号(如果没有update.lock文件，则源版本号为0.1.0，表示从0.1.0版本开始进行更新升级)，以及配置文件中的当前代码版本号，对数据库表结构进行升级，从而让数据库的表结构能够和当前版本的代码相匹配。
 
 ## 使用nginx反向代理
 
@@ -202,28 +239,43 @@ zenglMall版本信息：0.1.0
 
 ```
 server {
-     listen 80;
-     server_name mall.zengl.test;
-     root /usr/share/nginx/html/zenglMall;
-     index index.html index.zl;
+	listen 80;
 
-     location ~ \.zl$ {
-         proxy_pass   http://127.0.0.1:8083;
-         proxy_set_header   X-real-ip $remote_addr;
-         proxy_set_header   X-Forwarded-For $proxy_add_x_forwarded_for;
-         break;
-     }
-     access_log /var/log/nginx/mall.zengl.log;
+	server_name zenglmall.qq;
+	root /root/zenglMall/api;
+	index index.html index.htm;
+
+	location /adm_dist {
+		index index.html index.htm;
+		try_files $uri $uri/ /index.html;
+	}
+
+	location /dist {
+		index index.html index.htm;
+		try_files $uri $uri/ /index.html;
+	}
+
+	location ~ \.zl$ {
+		proxy_pass http://127.0.0.1:8083;
+		proxy_set_header X-real-ip $remote_addr;
+		proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+		break;
+	}
+	access_log /var/log/nginx/zenglmall.qq.log;
 }
 ```
 
 上面配置会将以.zl结尾的文件名也就是zengl脚本文件，通过反向代理的形式，转发给绑定了本地8083端口的zenglServer去处理(实际绑定的端口号是由zenglServer配置文件中的port变量来配置的，默认是8083端口)。
 
+此外，为了简单起见，上面直接将管理后台打包后的文件(通过npm run build命令打包)放入了api下面的adm_dist子目录中(因为管理后台的vue.config.js中设置了打包后的路径为adm_dist)
+
+并将前台用户页面打包后的文件放入了api下面的dist子目录中(前台普通用户页面的vue.config.js中设置了打包后的路径为dist)
+
 请确保zenglServer对zenglMall目录有读写权限，同时nginx对zenglMall目录有读权限(让nginx能读取到静态文件即可)
 
-使用上面nginx配置后，直接访问 http://mall.zengl.test 就可以看到商城首页了(因为上面nginx配置的默认首页文档中包含了index.zl，因此会自动访问zenglMall根目录中的index.zl脚本)
+使用上面nginx配置后，直接访问 http://zenglmall.qq/dist/ 就可以看到商城首页了
 
-访问 http://mall.zengl.test/admin/login.zl 可以看到后台登录页面。
+访问 http://zenglmall.qq/adm_dist/ 可以看到后台登录页面。
 
 如果要测试支付功能，请确保nginx中设置的域名能被外网访问到(否则支付宝无法将支付完成情况通过异步通知地址反馈给服务器)。
 
@@ -233,22 +285,12 @@ server {
 server {
      listen 443 ssl;
 
-     ssl_certificate /etc/nginx/ssl/mall.zengl.test.crt;
-     ssl_certificate_key /etc/nginx/ssl/mall.zengl.test.key;
+     ssl_certificate /etc/nginx/ssl/zenglmall.qq.crt;
+     ssl_certificate_key /etc/nginx/ssl/zenglmall.qq.key;
      ssl_session_cache shared:SSL:10m;
      ssl_session_timeout 60m;
 
-     server_name mall.zengl.test;
-     root /usr/share/nginx/html/zenglMall;
-     index index.html index.zl;
-
-     location ~ \.zl$ {
-         proxy_pass   http://127.0.0.1:8083;
-         proxy_set_header   X-real-ip $remote_addr;
-         proxy_set_header   X-Forwarded-For $proxy_add_x_forwarded_for;
-         break;
-     }
-     access_log /var/log/nginx/mall.zengl.log;
+     .........................................
 }
 ```
 
