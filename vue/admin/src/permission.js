@@ -23,6 +23,7 @@ const allowedRoutes = [
   'front/userinfo',
   'category/index',
   'goods/index',
+  'goods/attrIndex',
   'goods/addGoods',
   'order/index',
   'order/view',
