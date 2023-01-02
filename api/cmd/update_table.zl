@@ -58,6 +58,28 @@ elif(bltVersionCompare(update_version, '0.2.0') <= 0)
 	print 'add column delete_time to category table';
 	Mysql.Exec(db, "ALTER TABLE goods ADD COLUMN `delete_time` datetime NULL DEFAULT NULL COMMENT '删除时间'");
 	print 'add column delete_time to goods table';
+elif(bltVersionCompare(update_version, '0.3.0') <= 0)
+	// 创建商品属性表
+	Mysql.Exec(db, "CREATE TABLE goods_attr(
+		id int NOT NULL AUTO_INCREMENT,
+		`name` varchar(80) NOT NULL DEFAULT '' COMMENT '属性名称',
+		`created_at` datetime NULL DEFAULT NULL COMMENT '创建时间',
+	 	`updated_at` datetime NULL DEFAULT NULL COMMENT '更新时间',
+		`delete_time` datetime NULL DEFAULT NULL COMMENT '删除时间',
+		PRIMARY KEY (id)
+		) ENGINE=InnoDB DEFAULT CHARSET utf8 COLLATE utf8_general_ci COMMENT='商品属性表'");
+	print 'create table goods_attr';
+	// 创建商品属性值表
+	Mysql.Exec(db, "CREATE TABLE goods_attr_value(
+		id int NOT NULL AUTO_INCREMENT,
+		`aid` int NOT NULL DEFAULT '0' COMMENT '所属的属性的ID',
+		`name` varchar(80) NOT NULL DEFAULT '' COMMENT '属性值名称',
+		`created_at` datetime NULL DEFAULT NULL COMMENT '创建时间',
+	 	`updated_at` datetime NULL DEFAULT NULL COMMENT '更新时间',
+		`delete_time` datetime NULL DEFAULT NULL COMMENT '删除时间',
+		PRIMARY KEY (id)
+		) ENGINE=InnoDB DEFAULT CHARSET utf8 COLLATE utf8_general_ci COMMENT='商品属性值表'");
+	print 'create table goods_attr_value';
 endif
 
 bltWriteFile(update_lock_file, config['version']);

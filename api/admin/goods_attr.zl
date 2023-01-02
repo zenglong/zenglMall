@@ -1,0 +1,58 @@
+inc 'common.zl';
+
+GoodsAttr.action(rqtGetQuery());
+
+class GoodsAttr
+	fun action(querys)
+		action = querys['act'] ? querys['act'] : 'list';
+		if(action == 'list')
+			self.list();
+		elif(action == 'add')
+			self.add();
+		else
+			common_json_error('无效的请求');
+		endif
+	endfun
+
+	fun list()
+		// TODO
+	endfun
+
+	// 对数据进行预处理
+	fun preProcessData(posts)
+		if(bltCount(posts) > 0)
+			bltStr(&posts['name'], TRUE);
+		endif
+	endfun
+
+	// 校验数据
+	fun validate(db, posts, isadd = TRUE)
+		if(!posts['name'])
+			err_msg = '属性名称不能为空';
+		elif(!isadd)
+			if(!posts['id'])
+				err_msg = '无效的属性ID';
+			endif
+		endif
+		tmp = Mysql.fetchOne(db, "select count(1) as cnt from goods_attr where `name` = '" + Mysql.Escape(db, posts['name']) + "' and id <> " + bltInt(posts['id']));
+		cnt = bltInt(tmp['cnt']);
+		if(cnt > 0)
+			err_msg = '商品属性：' + posts['name'] + ' 已存在';
+		endif
+		if(err_msg)
+			common_json_error(err_msg);
+		endif
+	endfun
+
+	// 添加属性
+	fun add()
+		posts = rqtGetBodyAsArray();
+		db = init_db();
+		self.preProcessData(posts);
+		self.validate(db, posts);
+		posts['updated_at'] = posts['created_at'] = bltDate('%Y-%m-%d %H:%M:%S');
+		Mysql.Insert(db, 'goods_attr', posts);
+		common_json_success(NULL, '添加成功');
+	endfun
+endclass
+
