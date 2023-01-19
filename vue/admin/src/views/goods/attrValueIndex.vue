@@ -1,20 +1,19 @@
 <template>
   <div class="app-container">
     <div class="search-header">
-      <el-button type="primary" @click="addAttr()" round class="add-button">添加属性</el-button>
+      <el-button type="primary" @click="addAttrValue()" round class="add-button">添加属性</el-button>
     </div>
 
     <el-table ref="multipleTable1" border :data="list_data" style="width: 100%; margin-top: 20px; margin-left: 0px"
       v-loading="tabLoading" :fit="true">
       <el-table-column prop="id" label="ID" width="80" align="center"></el-table-column>
-      <el-table-column prop="name" label="属性名" align="center"></el-table-column>
+      <el-table-column prop="name" label="属性值名" align="center"></el-table-column>
       <el-table-column prop="created_at" label="创建时间" align="center"></el-table-column>
       <el-table-column prop="updated_at" label="更新时间" align="center"></el-table-column>
       <el-table-column label="操作" min-width="70" align="center">
         <template slot-scope="scope">
-          <i class="el-icon-edit operate-btn" @click="editAttr(scope.row)" title="编辑"></i>
-          <i class="el-icon-document operate-btn" @click="attrValueList(scope.row)" title="属性值"></i>
-          <i class="el-icon-delete operate-btn" @click="deleteAttr(scope.row)" title="删除"></i>
+          <i class="el-icon-edit operate-btn" @click="editAttrValue(scope.row)" title="编辑"></i>
+          <i class="el-icon-delete operate-btn" @click="deleteAttrValue(scope.row)" title="删除"></i>
         </template>
       </el-table-column>
     </el-table>
@@ -31,55 +30,51 @@
     </el-pagination>
 
     <el-dialog v-draggable class="dialogWraper" :title="dialogTitle" :visible.sync="dialogVisible"
+      :append-to-body="true"
       :close-on-click-modal="false"
       width="50%"
       :lock-scroll="true">
-      <add-attr v-if="dialogVisible" @close_event="closeDialog()" 
+      <add-attr-value v-if="dialogVisible" @close_event="closeDialog()" 
         @close_refresh_event="closeDialog(true)" 
         @close_refresh_edit_event="closeDialog(true, true)" 
-        :prop_attr_id="attr_id"></add-attr>
-    </el-dialog>
-
-    <el-dialog v-draggable class="dialogWraper" :title="dialogValueTitle" :visible.sync="dialogValueVisible"
-      :close-on-click-modal="false"
-      width="80%"
-      :lock-scroll="true">
-      <attr-value-index v-if="dialogValueVisible" :prop_attr_id="attr_id"></attr-value-index>
+        :prop_aid="attr_id"
+        :prop_id="attr_value_id"></add-attr-value>
     </el-dialog>
   </div>
 </template>
 
 <script>
-import { getList, deleteAttr } from '@/api/goods_attr'
-import addAttr from './addAttr'
-import attrValueIndex from './attrValueIndex'
-import DlgDraggable from "vue-element-dialog-draggable"
-import Vue from 'vue'
-Vue.use(DlgDraggable, {
-  containment: true //Constrains dragging to within the bounds of the window.  Default: false.
-})
+import { getList, deleteAttrValue } from '@/api/goods_attr_value'
+import addAttrValue from './addAttrValue'
 
 export default {
   components: {
-    addAttr,
-    attrValueIndex
+    addAttrValue,
+  },
+  props: {
+    prop_attr_id: {
+      type: Number,
+      default: 0,
+    }
   },
   data() {
     return {
       dialogTitle: '',
-      dialogValueTitle: '',
-      dialogVisible: false,
-      dialogValueVisible: false,
       tabLoading: false,
-      attr_id: 0,
+      dialogVisible: false,
       list_data: [],
       currentPage: 1,
       pageSize: 10,
       total: 0,
+      attr_id: 0,
+      attr_value_id: 0,
     }
   },
   mounted() {
-    this.onSearchSubmit()
+    if(this.prop_attr_id > 0) {
+      this.attr_id = this.prop_attr_id
+      this.onSearchSubmit()
+    }
   },
   methods: {
     closeDialog(refresh = false, is_edit = false) {
@@ -93,24 +88,24 @@ export default {
         }
       }
     },
-    addAttr() {
-      this.dialogTitle = '添加属性'
-      this.attr_id = 0
+    addAttrValue() {
+      this.dialogTitle = '添加属性值'
+      this.attr_value_id = 0
       this.dialogVisible = true
     },
-    editAttr(row) {
-      this.dialogTitle = '编辑属性'
-      this.attr_id = row.id
+    editAttrValue(row) {
+      this.dialogTitle = '编辑属性值'
+      this.attr_value_id = row.id
       this.dialogVisible = true
     },
-    deleteAttr(row) {
-      this.$confirm('删除['+row.name+']属性吗?', '提示', {
+    deleteAttrValue(row) {
+      this.$confirm('删除['+row.name+']属性值吗?', '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning'
       }).then(() => {
         this.tabLoading = true
-        deleteAttr({id: row.id}).then(response => {
+        deleteAttrValue({id: row.id}).then(response => {
           this.$message({
             message: response.msg,
             type: 'success'
@@ -121,11 +116,6 @@ export default {
         })
       }).catch(() => {
       })
-    },
-    attrValueList(row) {
-      this.attr_id = row.id
-      this.dialogValueTitle = row.name + '属性值列表'
-      this.dialogValueVisible = true
     },
     handleSizeChange(val) {
       this.currentPage = 1
@@ -144,7 +134,8 @@ export default {
       this.tabLoading = true
       getList({
         page,
-        pageSize: this.pageSize
+        pageSize: this.pageSize,
+        aid: this.attr_id,
       }).then(response => {
         this.list_data = response.data.list_data
         this.total = response.data.total
@@ -158,6 +149,9 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+.app-container {
+  padding-top: 0;
+}
 .operate-btn {
  cursor: pointer;
  padding-right: 25px;
