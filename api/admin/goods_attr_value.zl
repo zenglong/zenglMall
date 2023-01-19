@@ -1,8 +1,8 @@
 inc 'common.zl';
 
-GoodsAttr.action(rqtGetQuery());
+GoodsAttrValue.action(rqtGetQuery());
 
-class GoodsAttr
+class GoodsAttrValue
 	fun action(querys)
 		action = querys['act'] ? querys['act'] : 'list';
 		if(action == 'list')
@@ -20,30 +20,30 @@ class GoodsAttr
 		endif
 	endfun
 
-	// 属性列表
+	// 属性值列表
 	fun list()
 		db = init_db();
 		posts = rqtGetBodyAsArray();
-		where = " where delete_time is null ";
-		tmp = Mysql.fetchOne(db, "select count(1) as cnt from goods_attr as g " + where);
+		where = " where delete_time is null and aid = " + bltInt(posts['aid']);
+		tmp = Mysql.fetchOne(db, "select count(1) as cnt from goods_attr_value as g " + where);
 		data['total'] = bltInt(tmp['cnt']);
 		page = bltInt(posts['page']);
 		pageSize = bltInt(posts['pageSize']);
 		limit = pageSize <= 0 ? 10 : pageSize;
 		offset = page <= 0 ? 0 : (page - 1) * limit;
-		data['list_data'] = Mysql.fetchAll(db, "select * from goods_attr " + where + " order by id desc limit " + offset + "," + limit);
+		data['list_data'] = Mysql.fetchAll(db, "select * from goods_attr_value " + where + " order by id desc limit " + offset + "," + limit);
 		common_json_success(data);
 	endfun
 
 	// 获取属性信息
 	fun info(id)
 		if(!id)
-			common_json_error('无效的属性ID');
+			common_json_error('无效的属性值ID');
 		endif
 		db = init_db();
-		data['attr'] = Mysql.fetchOne(db, "select * from goods_attr where delete_time is null and id='"+id+"'");
-		if(!bltCount(data['attr']))
-			common_json_error('属性不存在或已删除');
+		data['attr_value'] = Mysql.fetchOne(db, "select * from goods_attr_value where delete_time is null and id='"+id+"'");
+		if(!bltCount(data['attr_value']))
+			common_json_error('属性值不存在或已删除');
 		endif
 		common_json_success(data);
 	endfun
@@ -51,6 +51,7 @@ class GoodsAttr
 	// 对数据进行预处理
 	fun preProcessData(posts)
 		if(bltCount(posts) > 0)
+			bltInt(&posts['aid'], TRUE);
 			bltStr(&posts['name'], TRUE);
 		endif
 	endfun
@@ -58,34 +59,37 @@ class GoodsAttr
 	// 校验数据
 	fun validate(db, posts, isadd = TRUE)
 		if(!posts['name'])
-			err_msg = '属性名称不能为空';
+			err_msg = '属性值名称不能为空';
+		elif(!posts['aid'])
+			err_msg = '请关联属性值ID';
 		elif(!isadd)
 			if(!posts['id'])
-				err_msg = '无效的属性ID';
+				err_msg = '无效的属性值ID';
 			endif
 		endif
-		tmp = Mysql.fetchOne(db, "select count(1) as cnt from goods_attr where delete_time is null and `name` = '" + Mysql.Escape(db, posts['name']) + "' and id <> " + bltInt(posts['id']));
+		tmp = Mysql.fetchOne(db, "select count(1) as cnt from goods_attr_value where delete_time is null and `name` = '" + Mysql.Escape(db, posts['name']) + 
+			"' and id <> " + bltInt(posts['id']) + " and aid = " + bltInt(posts['aid']));
 		cnt = bltInt(tmp['cnt']);
 		if(cnt > 0)
-			err_msg = '商品属性：' + posts['name'] + ' 已存在';
+			err_msg = '属性值：' + posts['name'] + ' 已存在';
 		endif
 		if(err_msg)
 			common_json_error(err_msg);
 		endif
 	endfun
 
-	// 添加属性
+	// 添加属性值
 	fun add()
 		posts = rqtGetBodyAsArray();
 		db = init_db();
 		self.preProcessData(posts);
 		self.validate(db, posts);
 		posts['updated_at'] = posts['created_at'] = bltDate('%Y-%m-%d %H:%M:%S');
-		Mysql.Insert(db, 'goods_attr', posts);
+		Mysql.Insert(db, 'goods_attr_value', posts);
 		common_json_success(NULL, '添加成功');
 	endfun
 
-	// 编辑属性
+	// 编辑属性值
 	fun edit()
 		posts = rqtGetBodyAsArray();
 		db = init_db();
@@ -93,22 +97,22 @@ class GoodsAttr
 		id = bltInt(posts['id']);
 		self.validate(db, posts, FALSE);
 		posts['updated_at'] = bltDate('%Y-%m-%d %H:%M:%S');
-		Mysql.Update(db, 'goods_attr', posts, 'id=' + id);
+		Mysql.Update(db, 'goods_attr_value', posts, 'id=' + id);
 		common_json_success(NULL, '编辑成功');
 	endfun
 
-	// 删除属性
+	// 删除属性值
 	fun delete(id)
 		if(!id)
-			common_json_error('无效的属性ID');
+			common_json_error('无效的属性值ID');
 		endif
 		db = init_db();
-		goods = Mysql.fetchOne(db, "select * from goods_attr where id=" + id);
+		goods = Mysql.fetchOne(db, "select * from goods_attr_value where id=" + id);
 		if(!bltCount(goods))
-			common_json_error('属性不存在');
+			common_json_error('属性值不存在');
 		endif
 		save['delete_time'] = bltDate("%Y-%m-%d %H:%M:%S");
-		Mysql.Update(db, 'goods_attr', save, 'id=' + id);
+		Mysql.Update(db, 'goods_attr_value', save, 'id=' + id);
 		common_json_success(NULL, '删除成功');
 	endfun
 endclass
