@@ -32,6 +32,41 @@
       <el-form-item label="商品描述">
         <el-input v-model="form.description" type="textarea" class="myel-inner-item form-description" placeholder="请输入商品描述"></el-input>
       </el-form-item>
+      <el-form-item label="商品规格">
+        <div class="sku-item" v-for="(sku_item, sku_key) in form.sku" :key="'sku_' + sku_key">
+          <template v-for="(attr_item, attr_key) in sku_item.attrs" >
+            <el-select class="attr-item"
+              placeholder="选择规格属性"
+              v-model="attr_item.attr_value_id"
+              @change="changeAttr(attr_item)"
+              :key="'attr_item_' + attr_key">
+              <el-option v-for="attr_option in attrs" 
+                :key="'attr_value_' + attr_option.attr_value_id" 
+                :label="attr_option.attr_name + ': ' + attr_option.attr_value_name"
+                :value="attr_option.attr_value_id">
+              </el-option>
+            </el-select>
+            <el-button @click="removeSkuAttr(sku_item, attr_key)" :key="'attr_minus_' + attr_key" v-if="attr_key > 0">
+              <i class="el-icon-minus"></i>
+            </el-button>
+          </template>
+          <el-button @click="addSkuAttr(sku_item)"><i class="el-icon-plus"></i></el-button>
+          <div class="sku-item-inner">
+            <div class="sku-item-input-label">规格标题：</div>
+            <el-input v-model="sku_item.name" placeholder="规格标题" class="sku-item-title sku-item-input"></el-input>
+            <div class="sku-item-input-label">价格：</div>
+            <el-input v-model="sku_item.price" placeholder="规格价格" class="sku-item-price sku-item-input"></el-input>
+            <div class="sku-item-input-label">库存：</div>
+            <el-input v-model="sku_item.num" placeholder="规格库存" @change="changeSkuNum()" class="sku-item-num sku-item-input"></el-input>
+            <div style="clear:both"></div>
+          </div>
+          <upload @set_thumbnail="setThumbnail(arguments, sku_item)" :prop_thumbnail="sku_item.thumbnail"></upload>
+          <el-button @click="removeSku(sku_key)" type="danger">
+            <i class="el-icon-minus">移除商品规格</i>
+          </el-button>
+        </div>
+        <el-button class="add-sku-btn" type="default" @click="addSku()"><i class="el-icon-plus"></i> 添加商品规格</el-button>
+      </el-form-item>
       <el-form-item label="商品内容">
         <div id="div1"></div>
       </el-form-item>
@@ -53,12 +88,17 @@
 
 <script>
 import { getList as getCategoryList } from '@/api/category'
+import { getAll as getAttrs } from '@/api/goods_attr_value'
 import { addGoods, getInfo, editGoods } from '@/api/goods'
 import { getImagePath } from '@/assets/js/common'
 import { mapGetters } from 'vuex';
+import upload from './upload'
 import E from "wangeditor"
 
 export default {
+  components: {
+    upload
+  },
   data() {
     return {
       VUE_APP_API_BASE_URL: '',
@@ -68,6 +108,7 @@ export default {
       save_loading: false,
       editor: null,
       categories: [],
+      attrs: [],
       form: {
         id: 0,
         name: '',
@@ -79,6 +120,7 @@ export default {
         description: '',
         content: '',
         cid: null,
+        sku: [],
       }
     }
   },
@@ -120,6 +162,7 @@ export default {
     editor.create()
     this.editor = editor
     this.getCategoryList()
+    this.getAttrs()
     let goods_id = this.$route.query.id
     if(goods_id > 0) {
       this.form.id = goods_id
@@ -127,6 +170,60 @@ export default {
     }
   },
   methods: {
+    changeSkuNum() {
+      let store_num = 0
+      for(let i=0; i < this.form.sku.length;i++) {
+        store_num += parseInt(this.form.sku[i]['num'])
+      }
+      this.form.store_num = store_num
+    },
+    changeAttr(attr_item) {
+      for(let i=0; i < this.attrs.length;i++) {
+        if(attr_item['attr_value_id'] == this.attrs[i]['attr_value_id']) {
+          attr_item.attr_id = this.attrs[i]['attr_id']
+          break
+        }
+      }
+    },
+    getAttrs() {
+      getAttrs({}).then(response => {
+        this.attrs = response.data.attrs
+      }).catch(error => {
+      })
+    },
+    setThumbnail(args, sku_item) {
+      sku_item.thumbnail = args[0]
+    },
+    addSku() {
+      this.form.sku.push({
+        attrs: [{
+          attr_value_id: null,
+        }],
+        name: '',
+        price: null,
+        num: null,
+        thumbnail: '',
+      })
+    },
+    removeSku(sku_key) {
+      this.$confirm('删除['+ this.form.sku[sku_key].name+']商品规格吗?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        this.form.sku.splice(sku_key, 1)
+      }).catch(() => {
+      })
+    },
+    addSkuAttr(sku_item) {
+      sku_item.attrs.push({
+        attr_value_id: null,
+      })
+    },
+    removeSkuAttr(sku_item, attr_key) {
+      sku_item.attrs.splice(attr_key, 1)
+      console.log(this.form.sku)
+    },
     getImagePath(image) {
       return getImagePath(image)
     },
@@ -141,10 +238,14 @@ export default {
       })
     },
     onSubmit() {
+      this.changeSkuNum()
       let form = JSON.parse(JSON.stringify(this.form))
       form.content = this.editor.txt.html()
       if(this.form.cid && this.form.cid.length > 0) {
         form.cid = this.form.cid[this.form.cid.length - 1]
+      }
+      if(form.sku.length > 0) {
+        form.sku = JSON.stringify(form.sku)
       }
       this.save_loading = true
       if(form.id > 0) {
@@ -267,5 +368,29 @@ export default {
   width: 178px;
   height: 178px;
   display: block;
+}
+.sku-item {
+  margin-bottom: 10px;
+}
+
+.sku-item-input {
+  float: left;
+  width: 120px;
+  margin-left: 10px;
+  margin-right: 15px;
+  margin-top: 15px;
+  margin-bottom: 15px;
+}
+.sku-item-title {
+  width: 350px;
+}
+.sku-item-input-label {
+  float: left;
+  margin-top: 15px;
+  margin-bottom: 15px;
+}
+.attr-item {
+  width: 160px;
+  margin-right: 15px;
 }
 </style>

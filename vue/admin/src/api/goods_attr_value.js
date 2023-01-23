@@ -9,6 +9,14 @@ export function getList(data) {
   })
 }
 
+export function getAll(data) {
+  return request({
+    url: '/admin/goods_attr_value.zl?act=all',
+    method: 'post',
+    data: qs.stringify(data)
+  })
+}
+
 export function addAttrValue(data) {
   return request({
     url: '/admin/goods_attr_value.zl?act=add',
