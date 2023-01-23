@@ -7,6 +7,8 @@ class GoodsAttrValue
 		action = querys['act'] ? querys['act'] : 'list';
 		if(action == 'list')
 			self.list();
+		elif(action == 'all')
+			self.all();
 		elif(action == 'info')
 			self.info(bltInt(querys['id']));
 		elif(action == 'add')
@@ -32,6 +34,15 @@ class GoodsAttrValue
 		limit = pageSize <= 0 ? 10 : pageSize;
 		offset = page <= 0 ? 0 : (page - 1) * limit;
 		data['list_data'] = Mysql.fetchAll(db, "select * from goods_attr_value " + where + " order by id desc limit " + offset + "," + limit);
+		common_json_success(data);
+	endfun
+
+	// 所有的属性值(用于下拉框选择属性值)
+	fun all()
+		db = init_db();
+		data['attrs'] = Mysql.fetchAll(db, "select v.id attr_value_id, v.name attr_value_name, a.name attr_name, a.id attr_id " + 
+			" from goods_attr_value v left join goods_attr a on a.id = v.aid " + 
+			" where v.delete_time is null and a.delete_time is null order by a.id desc, v.id desc");
 		common_json_success(data);
 	endfun
 

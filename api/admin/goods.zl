@@ -57,6 +57,17 @@ class Goods
 			bltInt(&posts['store_num'], TRUE);
 			bltFloat(&posts['price'], TRUE);
 			bltFloat(&posts['market_price'], TRUE);
+			posts['sku'] = bltJsonDecode(posts['sku']);
+			for(i=0; bltIterArray(posts['sku'],&i, &v);)
+				bltStr(&v['name'], TRUE);
+				bltStr(&v['thumbnail'], TRUE);
+				bltFloat(&v['price'], TRUE);
+				bltInt(&v['num'], TRUE);
+				for(j=0; bltIterArray(v['attrs'],&j, &vv);)
+					bltInt(&vv['attr_id'], TRUE);
+					bltInt(&vv['attr_value_id'], TRUE);
+				endfor
+			endfor
 		endif
 	endfun
 
@@ -77,8 +88,74 @@ class Goods
 				err_msg = '无效的商品ID';
 			endif
 		endif
+		if(err_msg == '' && bltCount(posts['sku']) > 0)
+			for(i=0; bltIterArray(posts['sku'],&i,&v) && err_msg == '';)
+				if(!v['name'])
+					err_msg = '规格名称不能为空';
+				elif(!v['price'])
+					err_msg = '必须填写规格价格';
+				elif(v['num'] < 0)
+					err_msg = '规格库存不能小于0';
+				else
+					for(j=0; bltIterArray(v['attrs'],&j,&vv);)
+						if(!vv['attr_id'] || !vv['attr_value_id'])
+							err_msg = '规格属性不能为空';
+						endif
+					endfor
+				endif
+			endfor
+		endif
 		if(err_msg)
 			common_json_error(err_msg);
+		endif
+	endfun
+
+	// 设置商品规格
+	fun setSku(db, sku, gid, isadd = TRUE)
+		sku_ids = '';
+		for(i=0; bltIterArray(sku,&i,&k,&v);)
+			attrs = v['attrs'];
+			bltUnset(&v['attrs']);
+			if(v['id'] > 0 && !isadd)
+				v['updated_at'] = bltDate('%Y-%m-%d %H:%M:%S');
+				sku_id = bltInt(v['id']);
+				Mysql.Update(db, 'goods_sku', v, 'id=' + sku_id);
+			else
+				v['updated_at'] = v['created_at'] = bltDate('%Y-%m-%d %H:%M:%S');
+				v['gid'] = gid;
+				Mysql.Insert(db, 'goods_sku', v);
+				result = Mysql.fetchOne(db, "SELECT LAST_INSERT_ID() as last_id");
+				sku_id = result['last_id'];
+				
+			endif
+			sku_ids += (k > 0 ? ',' : '') + sku_id;
+			self.setSkuAttr(db, attrs, sku_id, isadd);
+		endfor
+		if(!isadd)
+			del_data['delete_time'] = bltDate('%Y-%m-%d %H:%M:%S');
+			Mysql.Update(db, 'goods_sku', del_data, 'gid = ' + gid + (sku_ids != '' ? ' AND id NOT IN (' + sku_ids + ')' : ''));
+		endif
+	endfun
+
+	// 设置规格属性
+	fun setSkuAttr(db, attrs, sku_id, isadd = TRUE)
+		attr_ids = '';
+		for(i=0; bltIterArray(attrs,&i,&k,&v);)
+			if(v['id'] > 0 && !isadd)
+				v['updated_at'] = bltDate('%Y-%m-%d %H:%M:%S');
+				attr_id = bltInt(v['id']);
+				Mysql.Update(db, 'goods_sku_attr', v, 'id=' + attr_id);
+			else
+				v['updated_at'] = v['created_at'] = bltDate('%Y-%m-%d %H:%M:%S');
+				v['sku_id'] = sku_id;
+				Mysql.Insert(db, 'goods_sku_attr', v);
+				result = Mysql.fetchOne(db, "SELECT LAST_INSERT_ID() as last_id");
+				attr_id = result['last_id'];
+			endif
+			attr_ids += (k > 0 ? ',' : '') + attr_id;
+		endfor
+		if(!isadd)
+			Mysql.Exec(db, "DELETE FROM goods_sku_attr WHERE sku_id = " + sku_id + (attr_ids != '' ? ' AND id NOT IN (' + attr_ids + ')' : ''));
 		endif
 	endfun
 
@@ -94,11 +171,14 @@ class Goods
 		posts['updated_at'] = posts['created_at'] = bltDate('%Y-%m-%d %H:%M:%S');
 		posts['uid'] = sess_data['uid'];
 		Mysql.StartTransaction(db);
+		sku = posts['sku'];
+		bltUnset(&posts['sku']);
 		Mysql.Insert(db, 'goods', posts);
 		result = Mysql.fetchOne(db, "SELECT LAST_INSERT_ID() as last_id");
 		store['gid'] = result['last_id'];
 		store['num'] = store_num;
 		Mysql.Insert(db, 'goods_store', store);
+		self.setSku(db, sku, result['last_id']);
 		Mysql.Commit(db);
 		common_json_success(NULL, '添加成功');
 	endfun
@@ -113,6 +193,24 @@ class Goods
 		if(!bltCount(data['goods']))
 			common_json_error('无效的商品ID');
 		endif
+		sku = Mysql.fetchAll(db, "select * from goods_sku where delete_time is null and gid = " + id);
+		if(bltCount(sku) > 0)
+			sku_ids = '';
+			for(i=0; bltIterArray(sku,&i,&k,&v);)
+				sku_ids += (k > 0 ? ',' : '') + v['id'];
+			endfor
+			sku_attr = Mysql.fetchAll(db, "select * from goods_sku_attr where sku_id in (" + sku_ids + ")");
+			for(i=0; bltIterArray(sku_attr,&i,&v);)
+				sku_id = bltStr(v['sku_id']);
+				attrs = &sku_attr_map[sku_id];
+				attrs[] = v;
+			endfor
+			for(i=0; bltIterArray(sku,&i,&v);)
+				sku_id = bltStr(v['id']);
+				v['attrs'] = sku_attr_map[sku_id] ? sku_attr_map[sku_id] : bltArray();
+			endfor
+		endif
+		data['goods', 'sku'] = sku;
 		common_json_success(data);
 	endfun
 
@@ -122,17 +220,20 @@ class Goods
 		posts = rqtGetBodyAsArray();
 		db = init_db();
 		self.preProcessData(posts);
+		self.validate(db, posts, FALSE);
 		id = bltInt(posts['id']);
 		Mysql.StartTransaction(db);
 		// 通过事务和FOR UPDATE语句对商品库存表中gid所对应的记录行加行锁(注意，这里的gid在创建表结构时就设置了索引，所以可以触发InnoDB的行锁，如果gid不是索引，则会触发表锁，将全表都锁住)
 		// 通过加锁以保证商品库存操作的原子性，防止并发操作可能导致的错误的商品库存
 		store = Mysql.fetchOne(db, "select gid,num from goods_store where gid = '" + id + "' FOR UPDATE");
-		self.validate(db, posts, FALSE);
+		sku = posts['sku'];
+		bltUnset(&posts['sku']);
 		store['num'] = posts['store_num'];
 		bltUnset(&posts['store_num']);
 		posts['updated_at'] = bltDate('%Y-%m-%d %H:%M:%S');
 		Mysql.Update(db, 'goods', posts, 'id=' + id);
 		Mysql.Update(db, 'goods_store', store, 'gid=' + id);
+		self.setSku(db, sku, id, FALSE);
 		Mysql.Commit(db);
 		common_json_success(NULL, '编辑成功');
 	endfun

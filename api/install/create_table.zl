@@ -71,6 +71,35 @@ if(mysqlQuery(con, "CREATE TABLE goods(
 	finish_with_error(con);
 endif
 
+// 创建商品规格表
+if(mysqlQuery(con, "CREATE TABLE goods_sku(
+	id int NOT NULL AUTO_INCREMENT, 
+	name varchar(255) NOT NULL DEFAULT '' COMMENT '规格名称',
+	thumbnail varchar(255) NOT NULL DEFAULT '' COMMENT '规格缩略图',
+	price decimal(10,2) DEFAULT '0.00' COMMENT '规格价格',
+	gid int NOT NULL DEFAULT '0' COMMENT '规格所属商品的ID', 
+	num int NOT NULL DEFAULT '0' COMMENT '规格库存',
+	`created_at` datetime NULL DEFAULT NULL COMMENT '创建时间',
+ 	`updated_at` datetime NULL DEFAULT NULL COMMENT '更新时间',
+	`delete_time` datetime NULL DEFAULT NULL COMMENT '删除时间',
+	PRIMARY KEY (id)
+	) ENGINE=InnoDB DEFAULT CHARSET utf8 COLLATE utf8_general_ci COMMENT='商品规格表'"))
+	finish_with_error(con);
+endif
+
+// 创建商品规格属性表
+if(mysqlQuery(con, "CREATE TABLE goods_sku_attr(
+	id int NOT NULL AUTO_INCREMENT, 
+	sku_id int NOT NULL DEFAULT '0' COMMENT '规格ID', 
+	attr_id int NOT NULL DEFAULT '0' COMMENT '属性ID', 
+	attr_value_id int NOT NULL DEFAULT '0' COMMENT '属性值ID',
+	`created_at` datetime NULL DEFAULT NULL COMMENT '创建时间',
+	`updated_at` datetime NULL DEFAULT NULL COMMENT '更新时间',
+	PRIMARY KEY (id)
+	) ENGINE=InnoDB DEFAULT CHARSET utf8 COLLATE utf8_general_ci COMMENT='商品规格属性表'"))
+	finish_with_error(con);
+endif
+
 // 创建商品库存表
 if(mysqlQuery(con, "CREATE TABLE goods_store(
 	id int NOT NULL AUTO_INCREMENT, 
