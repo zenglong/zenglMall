@@ -20,13 +20,34 @@
         <el-table ref="multipleTable1" border :data="list_data" style="width: 100%; margin-top: 20px; margin-left: 0px" :fit="true">
           <el-table-column prop="thumbnail" label="缩略图" width="250">
             <template slot-scope="scope">
-              <img v-if="scope.row.thumbnail" :src="scope.row.thumbnail" width="210" height="210" />
+              <img v-if="scope.row.sku" :src="scope.row.sku.thumbnail" width="210" height="210" />
+              <img v-else-if="scope.row.thumbnail" :src="scope.row.thumbnail" width="210" height="210" />
             </template>
           </el-table-column>
-          <el-table-column prop="name" label="商品名" min-width="200"></el-table-column>
-          <el-table-column prop="price" label="商品价格" min-width="200"></el-table-column>
+          <el-table-column prop="name" label="商品名" min-width="200">
+            <template slot-scope="scope">
+              <div>{{ scope.row.name }}</div>
+              <div v-if="scope.row.sku">
+                <div>规格：{{ scope.row.sku.name }}</div>
+                <div v-for="(attr_item, attr_key) in scope.row.sku.attrs" :key="'attr_key_' + attr_key">
+                  {{ attr_item.attr_name }}: {{ attr_item.value_name }}
+                </div>
+              </div>
+            </template>
+          </el-table-column>
+          <el-table-column prop="price" label="商品价格" min-width="200">
+            <template slot-scope="scope">
+              <div v-if="scope.row.sku">{{ scope.row.sku.price }}</div>
+              <div v-else>{{ scope.row.price }}</div>
+            </template>
+          </el-table-column>
           <el-table-column prop="buy_num" label="购买数量" min-width="200"></el-table-column>
-          <el-table-column prop="pay_money" label="购买金额" min-width="200"></el-table-column>
+          <el-table-column prop="pay_money" label="购买金额" min-width="200">
+            <template slot-scope="scope">
+              <div v-if="scope.row.sku">{{ scope.row.sku.pay_money }}</div>
+              <div v-else>{{ scope.row.pay_money }}</div>
+            </template>
+          </el-table-column>
         </el-table>
       </el-form-item>
       <el-button :loading="pay_loading" type="primary" style="width:150px;margin-bottom:20px;" @click="doPay()">确认支付</el-button>
@@ -50,6 +71,7 @@ export default {
   data() {
     return {
       gid: 0,
+      sku_id: 0,
       buy_num: 0,
       loading: false,
       pay_loading: false,
@@ -73,6 +95,9 @@ export default {
     if(this.$route.query.gid) {
       this.gid = parseInt(this.$route.query.gid)
     }
+    if(this.$route.query.sku_id) {
+      this.sku_id = parseInt(this.$route.query.sku_id)
+    }
     if(this.$route.query.num) {
       this.buy_num = parseInt(this.$route.query.num)
     }
@@ -81,7 +106,7 @@ export default {
   methods: {
     getPayInfo() {
       this.loading = true
-      getPayInfo({gid: this.gid, buy_num: this.buy_num}).then(response => {
+      getPayInfo({gid: this.gid, sku_id: this.sku_id, buy_num: this.buy_num}).then(response => {
         this.user_info = response.data.user_info
         if(this.user_info.true_name) {
           this.posts_data.true_name = this.user_info.true_name
@@ -101,6 +126,7 @@ export default {
     doPay() {
       this.pay_loading = true
       doPay({gid: this.gid, 
+        sku_id: this.sku_id,
         buy_num: this.buy_num,
         phone: this.posts_data.phone,
         true_name: this.posts_data.true_name,

@@ -2,14 +2,14 @@
   <div class="info-wrapper" v-loading="loading">
     <div class="info-header clearfix">
       <div class="goods-thumb">
-        <img :src="getImagePath(goods_info.thumbnail)" />
+        <img :src="getImagePath((sku_id > 0 && sku_item !== null) ? sku_item.thumbnail : goods_info.thumbnail)" />
       </div>
       <div class="name-wrapper">
         <div class="goods-name">{{ goods_info.name }}</div>
         <div class="goods-price-wrapper">
           <div class="goods-price clearfix">
             <div class="goods-price-txt">{{ goods_price_txt }}</div>
-            <div class="goods-price-value">¥{{ goods_info.price }}</div>
+            <div class="goods-price-value">¥{{ (sku_id > 0 && sku_item !== null) ? sku_item.price : goods_info.price }}</div>
           </div>
           <div class="market-price goods-price clearfix">
             <div class="goods-price-txt">市 场 价</div>
@@ -17,12 +17,28 @@
           </div>
           <div class="market-price goods-price clearfix">
             <div class="goods-price-txt">{{ goods_store_txt }}</div>
-            <div class="market-price-value goods-price-value">{{ goods_info.store_num }}</div>
+            <div class="market-price-value goods-price-value">{{ (sku_id > 0 && sku_item !== null) ? sku_item.num : goods_info.store_num }}</div>
           </div>
         </div>
         <div class="goods-btn-wrapper clearfix">
           <input type="number" v-model="buy_num" class="goods-buy-input" />
           <a class="goods-buy-button" href="javascript:void(0)" @click="goodsPay()">立即购买</a>
+        </div>
+        <div class="goods-sku-wrapper clearfix" v-if="goods_info.sku.length > 0">
+          <div class="goods-sku-label">选择规格:</div>
+          <div class="goods-sku-inner">
+            <div :class="'goods-sku-item clearfix' + (sku_id == sku_item.id ? ' goods-sku-item-selected' : '')" 
+              @click="clickSkuItem(sku_item)"
+              v-for="(sku_item, sku_key) in goods_info.sku" :key="'sku_item_' + sku_key">
+              <img :src="sku_item.thumbnail" class="goods-sku-item-image"/>
+              <div class="goods-sku-item-name">
+                <span>{{ sku_item.name }}</span>
+                <span v-for="(attr_item, attr_key) in sku_item.attrs" :key="'attr_key_' + attr_key">
+                  {{ attr_item.attr_name }}: {{ attr_item.value_name }}
+                </span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -59,7 +75,11 @@ export default {
     return {
       loading: false,
       gid: 0,
-      goods_info: {},
+      sku_id: 0,
+      sku_item: null,
+      goods_info: {
+        sku: []
+      },
       goods_list: [],
       goods_price_txt: '价　　格',
       goods_store_txt: '库　　存',
@@ -86,11 +106,23 @@ export default {
     }
   },
   methods: {
+    clickSkuItem(sku_item) {
+      this.sku_id = sku_item.id
+      this.sku_item = sku_item
+    },
     goodsPay() { // 商品购买
-      if(!this.token) {
-        Cookies.set(getLoginRedirectName(), '/goods/pay?gid='+this.goods_info.id+"&num="+this.buy_num)
+      if(this.goods_info.sku.length > 0 && !this.sku_id) {
+        this.$message({
+          message: '请先选择规格',
+          type: 'warning'
+        })
+        return
       }
-      this.$router.push('/goods/pay?gid='+this.goods_info.id+"&num="+this.buy_num)
+      let url = '/goods/pay?gid='+this.goods_info.id+ (this.sku_id > 0 ? '&sku_id=' + this.sku_id : '')+"&num="+this.buy_num
+      if(!this.token) {
+        Cookies.set(getLoginRedirectName(), url)
+      }
+      this.$router.push(url)
     },
     goodsInfo(gid, cid) {
       this.$router.push('/goods/info?gid='+gid+"&cid="+cid)
@@ -291,5 +323,46 @@ export default {
     font-weight: 700;
     font-family: arial,sans-serif;
   }
+}
+
+.goods-sku-wrapper {
+  border-top: 1px dotted #dfdfdf;
+  padding-top: 15px;
+  margin-top: 15px;
+}
+.goods-sku-label {
+  float: left;
+  margin-top: 8px;
+}
+.goods-sku-inner {
+  float: left;
+  margin-left: 15px;
+  width: auto;
+}
+.goods-sku-item {
+  padding: 5px;
+  padding-right: 15px;
+  background-color: #f7f7f7;
+  color: #666;
+  font-size: 14px;
+  margin-bottom: 9px;
+  border: 1px solid white;
+}
+.goods-sku-item:hover {
+  border: 1px solid #e3393c;
+  cursor: pointer;
+}
+.goods-sku-item-selected {
+  border: 1px solid #e3393c;
+}
+.goods-sku-item-name {
+  float: left;
+  margin-top: 10px;
+}
+.goods-sku-item-image {
+  float: left;
+  margin-right: 15px;
+  width: 40px;
+  height: 40px;
 }
 </style>
