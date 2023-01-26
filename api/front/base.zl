@@ -11,4 +11,28 @@ class Base
 						cid + " or c.pid = " + cid + ') ' + where + order + " limit " + offset + "," + num);
 		return retval['total'];
 	endfun
+
+	// 获取商品规格信息
+	fun getGoodsSku(db, gid, sku_id = 0)
+		sku = Mysql.fetchAll(db, "select * from goods_sku where delete_time is null and gid = " + gid + (sku_id > 0 ? " and id = " + sku_id : ''));
+		if(bltCount(sku) > 0)
+			sku_ids = '';
+			for(i=0; bltIterArray(sku,&i,&k,&v);)
+				sku_ids += (k > 0 ? ',' : '') + v['id'];
+			endfor
+			sku_attr = Mysql.fetchAll(db, "select sa.*, a.name attr_name, v.name value_name from goods_sku_attr sa left join goods_attr a on a.id = sa.attr_id " + 
+				" left join goods_attr_value v on v.id = sa.attr_value_id " + 
+				" where sa.sku_id in (" + sku_ids + ")");
+			for(i=0; bltIterArray(sku_attr,&i,&v);)
+				sku_id = bltStr(v['sku_id']);
+				attrs = &sku_attr_map[sku_id];
+				attrs[] = v;
+			endfor
+			for(i=0; bltIterArray(sku,&i,&v);)
+				sku_id = bltStr(v['id']);
+				v['attrs'] = sku_attr_map[sku_id] ? sku_attr_map[sku_id] : bltArray();
+			endfor
+		endif
+		return sku;
+	endfun
 endclass

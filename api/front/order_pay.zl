@@ -18,9 +18,15 @@ class OrderPay
 			common_json_error('订单信息不存在');
 		endif
 		if(order_info['status'] == 'WAIT_BUYER')
-			store = Mysql.fetchOne(db, "select gid,num from goods_store where gid = '" + order_info["gid"] + "'");
-			if(order_info['num'] > store['num'])
-				common_json_error('库存不足，当前可用库存：' + store['num']);
+			if(order_info['sku_id'] > 0)
+				sku = Mysql.fetchOne(db, "select id,num from goods_sku where id = '" + order_info['sku_id'] + "'");
+				available_num = sku['num'];
+			else
+				store = Mysql.fetchOne(db, "select gid,num from goods_store where gid = '" + order_info["gid"] + "'");
+				available_num = store['num'];
+			endif
+			if(order_info['num'] > available_num)
+				common_json_error('库存不足，当前可用库存：' + available_num);
 			endif
 			params = GoodsPayBase.returnDoPayParams(order_info);
 			data['params'] = params;

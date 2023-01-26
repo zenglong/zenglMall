@@ -56,6 +56,9 @@ class OrderList
 		global sess_data;
 		db = init_db();
 		data['order_info'] = Mysql.fetchOne(db, "select * from orders where uid = " + sess_data['uid'] + " and id = " + id);
+		if(data['order_info', 'sku_attr_info'] != '')
+			data['order_info', 'sku_attr_info'] = bltJsonDecode(data['order_info', 'sku_attr_info']);
+		endif
 		common_json_success(data);
 	endfun
 

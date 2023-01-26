@@ -1,6 +1,7 @@
 inc 'common.zl';
 use pcre,openssl;
 
+inc 'base.zl';
 inc 'user_sess.zl';
 inc 'alipay_func.zl';
 inc 'goods_pay_base.zl';
@@ -23,12 +24,20 @@ class GoodsPay
 	fun getPayInfo(querys)
 		global sess_data;
 		id = bltInt(querys['gid']);
+		sku_id = bltInt(querys['sku_id']);
 		buy_num = bltInt(querys['buy_num']);
 		if(buy_num <= 0)
 			buy_num = 1;
 		endif
 		db = init_db();
 		goods_info = Mysql.fetchOne(db, "select id,name,thumbnail,price,description from goods where id=" + id);
+		if(sku_id > 0)
+			sku = Base.getGoodsSku(db, id, sku_id);
+			if(bltCount(sku) == 1)
+				goods_info['sku'] = sku[0];
+				goods_info['sku', 'pay_money'] = bltStr(buy_num * bltFloat(goods_info['sku', 'price']), '%.2f');
+			endif
+		endif
 		user_info = Mysql.fetchOne(db, "select id,username,nickname,phone,true_name,address from users where id=" + sess_data['uid']);
 		goods_info['buy_num'] = buy_num;
 		goods_info['pay_money'] = bltStr(buy_num * bltFloat(goods_info['price']), '%.2f');
@@ -52,12 +61,21 @@ class GoodsPay
 		self.updateUserInfo(db, posts_data['phone'], posts_data['true_name'], posts_data['address']);
 		
 		id = bltInt(posts_data['gid']);
+		sku_id = bltInt(posts_data['sku_id']);
 		buy_num = bltInt(posts_data['buy_num']);
 		if(buy_num <= 0)
 			buy_num = 1;
 		endif
-		store = Mysql.fetchOne(db, "select gid,num from goods_store where gid = '" + id + "'");
-		available_num = store['num'];
+		if(sku_id > 0)
+			sku = Base.getGoodsSku(db, id, sku_id);
+			if(!bltCount(sku))
+				common_json_error('商品规格信息不存在');
+			endif
+			available_num = sku[0, 'num'];
+		else
+			store = Mysql.fetchOne(db, "select gid,num from goods_store where gid = '" + id + "'");
+			available_num = store['num'];
+		endif
 		if(buy_num > available_num)
 			common_json_error('库存不足，当前可用库存：' + available_num);
 		endif
@@ -76,6 +94,18 @@ class GoodsPay
 		order_info['thumbnail'] = goods_info['thumbnail'];
 		order_info['num'] = buy_num;
 		order_info['amount'] = bltStr(buy_num * bltFloat(goods_info['price']), '%.2f');
+		if(sku_id > 0)
+			sku_info = sku[0];
+			order_info['sku_id'] = sku_info['id'];
+			order_info['sku_name'] = sku_info['name'];
+			order_info['sku_attr_info'] = bltJsonEncode(sku_info['attrs']);
+			order_info['price'] = sku_info['price'];
+			order_info['thumbnail'] = sku_info['thumbnail'];
+			order_info['amount'] = bltStr(buy_num * bltFloat(sku_info['price']), '%.2f');
+			if(bltUtfStrLen(order_info['sku_attr_info']) > 2048)
+				common_json_error('商品规格属性信息异常，无法保存订单信息');
+			endif
+		endif
 		order_info['phone'] = posts_data['phone'];          // 设置收货人电话
 		order_info['true_name'] = posts_data['true_name'];  // 设置收货人姓名
 		order_info['address'] = posts_data['address'];      // 设置收货地址

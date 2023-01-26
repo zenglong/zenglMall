@@ -47,6 +47,7 @@ class Goods
 		// 根据商品ID，获取商品的名称，价格，缩略图，商品的详细介绍等信息
 		data['goods_info'] = Mysql.fetchOne(db, "select g.id,g.name,g.thumbnail,g.price,g.market_price,g.keywords,g.description,g.content,g.cid,gs.num as store_num from goods g "+
 				" left join goods_store gs on gs.gid = g.id where g.id=" + gid);
+		data['goods_info', 'sku'] = Base.getGoodsSku(db, gid);
 		// 获取相关商品列表，也就是同分类中随即获取的5个其他的商品信息
 		data['goods_list'] = Base.goodsListByCid(db, data['goods_info', 'cid'], 0, 5, ' and g.id != ' + gid, ' order by RAND() ');
 		common_json_success(data);

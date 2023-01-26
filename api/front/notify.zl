@@ -28,8 +28,8 @@ ret = check_sign(key_content, data, sign);
 
 if(ret)
 	db = bltArray();
-	Mysql.init(db, config, "tpl/error.tpl");
-	order_info = Mysql.fetchOne(db, "select id,oid,status,tid,num,gid from orders where oid=" + sort_body_arr['out_trade_no']);
+	Mysql.init(db, config);
+	order_info = Mysql.fetchOne(db, "select id,oid,status,tid,num,gid,sku_id from orders where oid=" + sort_body_arr['out_trade_no']);
 	if(sort_array['trade_status'] == 'TRADE_SUCCESS' && order_info['status'] == 'WAIT_BUYER')
 		Mysql.StartTransaction(db);
 		// 通过事务和FOR UPDATE语句对商品库存表中gid所对应的记录行加行锁(注意，这里的gid在创建表结构时就设置了索引，所以可以触发InnoDB的行锁，如果gid不是索引，则会触发表锁，将全表都锁住)
@@ -42,6 +42,15 @@ if(ret)
 		// 采用付款后减库存方式
 		store['num'] -= order_info['num'];
 		store['num'] = store['num'] < 0 ? 0 : store['num'];
+		if(order_info['sku_id'] > 0)
+			sku = Mysql.fetchOne(db, "select id,num from goods_sku where id=" + order_info['sku_id']);
+			if(bltCount(sku) > 0)
+				sku['num'] -= order_info['num'];
+				sku_save['num'] = sku['num'] < 0 ? 0 : sku['num'];
+				sku_save['updated_at'] = order_info['update_time'];
+				Mysql.Update(db, 'goods_sku', sku_save, 'id=' + order_info['sku_id']);
+			endif
+		endif
 		Mysql.Update(db, 'goods_store', store, 'gid=' + order_info['gid']);
 		Mysql.Commit(db);
 	endif

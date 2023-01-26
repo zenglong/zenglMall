@@ -105,6 +105,15 @@ elif(bltVersionCompare(update_version, '0.3.0') <= 0)
 		PRIMARY KEY (id)
 		) ENGINE=InnoDB DEFAULT CHARSET utf8 COLLATE utf8_general_ci COMMENT='商品规格属性表'");
 	print 'create table goods_sku_attr';
+	// 订单表添加规格ID
+	Mysql.Exec(db, "ALTER TABLE orders ADD COLUMN `sku_id` int NOT NULL DEFAULT '0' COMMENT '规格ID' AFTER gid");
+	print 'add column sku_id to orders table';
+	// 订单表添加规格名称
+	Mysql.Exec(db, "ALTER TABLE orders ADD COLUMN `sku_name` varchar(255) NOT NULL DEFAULT '' COMMENT '规格名称' AFTER name");
+	print 'add column sku_name to orders table';
+	// 订单表添加规格属性信息
+	Mysql.Exec(db, "ALTER TABLE orders ADD COLUMN `sku_attr_info` varchar(2048) NOT NULL DEFAULT '' COMMENT '规格属性信息' AFTER sku_name");
+	print 'add column sku_attr_info to orders table';
 endif
 
 bltWriteFile(update_lock_file, config['version']);
