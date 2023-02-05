@@ -10,6 +10,14 @@
       <el-form-item label="商品名称">
         <span>{{ info.name }}</span>
       </el-form-item>
+      <el-form-item label="规格名称" v-if="info.sku_name">
+        <span>{{ info.sku_name }}</span>
+      </el-form-item>
+      <el-form-item label="规格属性" v-if="info.sku_attr_info">
+        <span v-for="(sku_attr_item, sku_attr_key) in info.sku_attr_info" :key="'sku_attr_key_' + sku_attr_key" class="sku-attr-item">
+          {{ sku_attr_item.attr_name }}: {{ sku_attr_item.value_name }}
+        </span>
+      </el-form-item>
       <el-form-item label="商品描述">
         <span>{{ info.description }}</span>
       </el-form-item>
@@ -213,5 +221,8 @@ export default {
 }
 .return-to-list {
   margin-left: 30px;
+}
+.sku-attr-item {
+  margin-right: 15px;
 }
 </style>
