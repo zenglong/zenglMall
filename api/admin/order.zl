@@ -58,6 +58,9 @@ class Order
 	fun view(id)
 		db = init_db();
 		data['info'] = Mysql.fetchOne(db, "select * from orders where id = " + id);
+		if(data['info', 'sku_attr_info'] != '')
+			data['info', 'sku_attr_info'] = bltJsonDecode(data['info', 'sku_attr_info']);
+		endif
 		common_json_success(data);
 	endfun
 
